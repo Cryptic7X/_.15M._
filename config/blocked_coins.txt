@@ -29,5 +29,6 @@ UST
 # Add your specific blocked coins here
 # Format: One symbol per line
 
+PAXG
 
 # Lines starting with # are comments
