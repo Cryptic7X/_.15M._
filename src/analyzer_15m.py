@@ -19,7 +19,7 @@ sys.path.insert(0, current_dir)
 from utils.heikin_ashi import heikin_ashi
 from indicators.cipherb_fixed import detect_cipherb_signals
 from alerts.deduplication_15m import HighRisk15mDeduplicator
-from alerts.telegram_high_risk import send_high_risk_alert
+from alerts.telegram_high_risk import send_batched_high_risk_alert
 
 class HighRisk15mAnalyzer:
     def __init__(self):
