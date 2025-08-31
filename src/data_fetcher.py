@@ -22,7 +22,28 @@ class HighRisk15mDataFetcher:
             return yaml.safe_load(f)
     
     def load_blocked_coins(self):
-        return set(self.config.get('blocked_coins', []))
+        """Load blocked coins from both config and file"""
+        blocked_coins = set()
+        
+        # Load from config (YAML)
+        config_blocked = self.config.get('blocked_coins', [])
+        blocked_coins.update(coin.upper() for coin in config_blocked)
+        
+        # Load from blocked_coins.txt file
+        blocked_file = os.path.join(os.path.dirname(__file__), '..', 'config', 'blocked_coins.txt')
+        try:
+            with open(blocked_file, 'r') as f:
+                for line in f:
+                    line = line.strip().upper()
+                    # Skip empty lines and comments
+                    if line and not line.startswith('#'):
+                        blocked_coins.add(line)
+            print(f"📋 Loaded {len(blocked_coins)} blocked coins from config and file")
+        except FileNotFoundError:
+            print("⚠️ No blocked_coins.txt found, using config only")
+        
+        return blocked_coins
+
     
     def fetch_coingecko_coins(self):
         """Fetch high-risk coins from CoinGecko with 15m focus and API key support"""
