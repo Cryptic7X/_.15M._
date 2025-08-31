@@ -25,9 +25,15 @@ class HighRisk15mDataFetcher:
         return set(self.config.get('blocked_coins', []))
     
     def fetch_coingecko_coins(self):
-        """Fetch high-risk coins from CoinGecko with 15m focus"""
+        """Fetch high-risk coins from CoinGecko with 15m focus and API key support"""
         url = f"{self.config['coingecko']['base_url']}/coins/markets"
         all_coins = []
+        
+        # Prepare headers with API key if provided
+        headers = {}
+        api_key = os.getenv("COINGECKO_API_KEY")
+        if api_key:
+            headers['X-CoinGecko-Api-Key'] = api_key
         
         print("🔍 Scanning for high-risk 15m opportunities...")
         
@@ -41,7 +47,12 @@ class HighRisk15mDataFetcher:
                     'sparkline': 'false'
                 }
                 
-                response = requests.get(url, params=params, timeout=self.config['coingecko']['timeout'])
+                response = requests.get(
+                    url,
+                    params=params,
+                    headers=headers,
+                    timeout=self.config['coingecko']['timeout']
+                )
                 response.raise_for_status()
                 coins = response.json()
                 
@@ -58,6 +69,7 @@ class HighRisk15mDataFetcher:
         
         print(f"📊 Total coins fetched: {len(all_coins)}")
         return all_coins
+
     
     def apply_high_risk_filters(self, coins):
         """Apply high-risk 15m trading filters"""
