@@ -1,0 +1,33 @@
+# High-Risk 15m System - Blocked Coins List
+# Stablecoins
+USDT
+USDC
+BUSD
+DAI
+TUSD
+FDUSD
+FRAX
+LUSD
+USDD
+UST
+
+# Wrapped Tokens
+WBTC
+WETH
+WBNB
+WMATIC
+WAVAX
+WFTM
+
+
+# Problematic/Low Volume
+LUNA
+LUNC
+USTC
+UST
+
+# Add your specific blocked coins here
+# Format: One symbol per line
+
+
+# Lines starting with # are comments
