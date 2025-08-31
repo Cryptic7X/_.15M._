@@ -3,6 +3,11 @@ High-Risk Telegram Alert System for 15-Minute CipherB Analysis
 Optimized for rapid decision-making with essential data
 """
 
+"""
+High-Risk Telegram Alert System for 15-Minute CipherB Analysis
+Batched alerts for efficient trading workflow
+"""
+
 import os
 import requests
 from datetime import datetime
@@ -101,7 +106,7 @@ def send_batched_high_risk_alert(signals):
 
 ─────────────────────────────
 🔥 *High-Risk 15m System v1.0*"""
-    
+
     # Send batched alert
     url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
     payload = {
@@ -119,4 +124,3 @@ def send_batched_high_risk_alert(signals):
     except requests.RequestException as e:
         print(f"❌ Batched alert failed: {e}")
         return False
-
