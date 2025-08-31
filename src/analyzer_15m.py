@@ -136,8 +136,7 @@ class HighRisk15mAnalyzer:
     
     def analyze_coin_15m(self, coin_data):
         """
-        High-risk 15-minute analysis with pure CipherB
-        One alert per 15-minute candle
+        High-risk 15-minute analysis - collect signals instead of sending immediately
         """
         symbol = coin_data.get('symbol', '').upper()
         
@@ -145,7 +144,7 @@ class HighRisk15mAnalyzer:
             # Fetch 15m data
             price_df, exchange_used = self.fetch_15m_data(symbol)
             if price_df is None:
-                return False, f"No 15m data available"
+                return None
             
             # Convert to Heikin-Ashi
             ha_data = heikin_ashi(price_df)
@@ -153,56 +152,50 @@ class HighRisk15mAnalyzer:
             # Apply CipherB indicator
             cipherb_signals = detect_cipherb_signals(ha_data, self.config['cipherb'])
             if cipherb_signals.empty:
-                return False, "No CipherB signals"
+                return None
             
             # Get latest signal data
             latest_signals = cipherb_signals.iloc[-1]
             latest_timestamp = cipherb_signals.index[-1]
             
-            signal_sent = False
-            
-            # Pure CipherB BUY signal
+            # Check for BUY signal
             if latest_signals['buySignal']:
                 if self.deduplicator.is_alert_allowed(symbol, 'BUY', latest_timestamp):
-                    print(f"🔔🟢 HIGH-RISK BUY: {symbol} (15m) - {exchange_used}")
-                    print(f"   📊 CipherB: wt1={latest_signals['wt1']:.1f}, wt2={latest_signals['wt2']:.1f}")
-                    print(f"   🕐 Timestamp: {latest_timestamp}")
-                    
-                    send_high_risk_alert(
-                        coin_data, 'BUY',
-                        latest_signals['wt1'], latest_signals['wt2'],
-                        exchange_used, latest_timestamp
-                    )
-                    signal_sent = True
+                    return {
+                        'coin_data': coin_data,
+                        'signal_type': 'BUY',
+                        'wt1': latest_signals['wt1'],
+                        'wt2': latest_signals['wt2'],
+                        'exchange': exchange_used,
+                        'timestamp': latest_timestamp
+                    }
             
-            # Pure CipherB SELL signal
+            # Check for SELL signal
             if latest_signals['sellSignal']:
                 if self.deduplicator.is_alert_allowed(symbol, 'SELL', latest_timestamp):
-                    print(f"🔔🔴 HIGH-RISK SELL: {symbol} (15m) - {exchange_used}")
-                    print(f"   📊 CipherB: wt1={latest_signals['wt1']:.1f}, wt2={latest_signals['wt2']:.1f}")
-                    print(f"   🕐 Timestamp: {latest_timestamp}")
-                    
-                    send_high_risk_alert(
-                        coin_data, 'SELL',
-                        latest_signals['wt1'], latest_signals['wt2'],
-                        exchange_used, latest_timestamp
-                    )
-                    signal_sent = True
+                    return {
+                        'coin_data': coin_data,
+                        'signal_type': 'SELL',
+                        'wt1': latest_signals['wt1'],
+                        'wt2': latest_signals['wt2'],
+                        'exchange': exchange_used,
+                        'timestamp': latest_timestamp
+                    }
             
-            return signal_sent, f"Analysis complete - {exchange_used}"
+            return None
             
         except Exception as e:
-            return False, f"Analysis error: {str(e)[:100]}"
+            print(f"❌ {symbol} analysis failed: {str(e)[:50]}")
+            return None
     
     def run_high_risk_analysis(self):
-        """Execute high-risk 15m market analysis"""
+        """Execute high-risk 15m analysis and send batched alerts"""
         print(f"\n" + "="*80)
         print("🔔 HIGH-RISK 15M CIPHERB ANALYSIS STARTING")
         print("="*80)
         print(f"🕐 Timestamp: {datetime.now().strftime('%Y-%m-%d %H:%M:%S IST')}")
         print(f"⏱️ Timeframe: {self.config['system']['timeframe'].upper()}")
         print(f"🎯 System: {self.config['system']['name']}")
-        print(f"🔔 Alert Mode: High-Risk Channel")
         
         # Load high-risk market data
         coins = self.load_high_risk_market_data()
@@ -212,45 +205,42 @@ class HighRisk15mAnalyzer:
         print(f"📊 Available exchanges: {[name for name, _ in self.exchanges]}")
         print(f"📈 High-risk coins to analyze: {len(coins)}")
         
-        # High-speed batch processing
-        batch_size = self.config['alerts']['batch_size']
-        total_signals = 0
+        # Collect all signals
+        all_signals = []
         total_analyzed = 0
         
-        for i in range(0, len(coins), batch_size):
-            batch = coins[i:i+batch_size]
-            batch_signals = 0
-            
-            print(f"\n🔄 High-Risk Batch {i//batch_size + 1}: Analyzing coins {i+1}-{min(i+batch_size, len(coins))}")
+        for i in range(0, len(coins), self.config['alerts']['batch_size']):
+            batch = coins[i:i+self.config['alerts']['batch_size']]
+            print(f"\n🔄 Analyzing batch {i//self.config['alerts']['batch_size'] + 1}...")
             
             for coin in batch:
-                signal_sent, status = self.analyze_coin_15m(coin)
-                if signal_sent:
-                    batch_signals += 1
+                signal = self.analyze_coin_15m(coin)
+                if signal:
+                    all_signals.append(signal)
+                    print(f"🔔 {signal['signal_type']}: {signal['coin_data']['symbol'].upper()}")
                 total_analyzed += 1
-                
-                # Fast rate limiting for 15m
                 time.sleep(self.config['exchanges']['rate_limit'])
-            
-            total_signals += batch_signals
-            print(f"✅ Batch complete: {batch_signals} high-risk signals from {len(batch)} coins")
-            
-            # Inter-batch delay
-            if i + batch_size < len(coins):
-                time.sleep(1)
+        
+        # Send batched alert if we have signals
+        if all_signals:
+            from alerts.telegram_high_risk import send_batched_high_risk_alert
+            send_batched_high_risk_alert(all_signals)
+            print(f"\n✅ Sent batched alert with {len(all_signals)} signals")
+        else:
+            print(f"\n📊 No signals found in this run")
         
         # Analysis summary
         print(f"\n" + "="*80)
         print("🔔 HIGH-RISK 15M ANALYSIS COMPLETE")
         print("="*80)
         print(f"🎯 Total coins analyzed: {total_analyzed}")
-        print(f"🚨 High-risk signals sent: {total_signals}")
-        print(f"📈 Signal efficiency: {total_signals/total_analyzed*100:.2f}%")
-        print(f"⏰ Next analysis: {(datetime.now() + timedelta(minutes=15)).strftime('%H:%M:%S IST')}")
+        print(f"🚨 High-risk signals found: {len(all_signals)}")
+        print(f"📈 Signal rate: {len(all_signals)/total_analyzed*100:.1f}%")
         print("="*80)
         
         # Cleanup
         self.deduplicator.cleanup_expired_entries()
+
 
 def main():
     analyzer = HighRisk15mAnalyzer()
