@@ -1,59 +1,58 @@
+# .github/workflows/analysis_15m.yml
+
 name: High-Risk CipherB 15-Minute Analysis
 
 on:
   schedule:
-    # Run 2 minutes after each 15-minute boundary in UTC
-    # IST 15m boundaries: 00:00,00:15,00:30,00:45 → UTC: 18:30,18:45,19:00,19:15
-    # Run at: 18:32,18:47,19:02,19:17, etc.
-    - cron: '2,17,32,47 * * * *'  # Every 15 minutes, 2 minutes after boundary
+    # Run exactly 2 minutes after each 15m candle closes in IST
+    # IST 15m closes: 7:00,7:15,7:30,7:45 = UTC: 13:30,13:45,14:00,14:15
+    # Run at UTC: 13:32,13:47,14:02,14:17 = IST: 7:02,7:17,7:32,7:47
+    - cron: '32,47 * * * *'  # :32 and :47 every hour
+    - cron: '2,17 * * * *'   # :02 and :17 every hour
   workflow_dispatch:
 
 jobs:
   high_risk_analysis:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 8
     
     steps:
-      - name: Checkout High-Risk System
+      - name: Checkout Repository
         uses: actions/checkout@v4
       
-      - name: Setup Python Environment
+      - name: Setup Python
         uses: actions/setup-python@v4
         with:
           python-version: '3.11'
-      
-      - name: Cache Dependencies
-        uses: actions/cache@v3
-        with:
-          path: ~/.cache/pip
-          key: pip-${{ hashFiles('requirements.txt') }}
       
       - name: Install Dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
       
-      - name: Run High-Risk 15m Analysis
+      - name: Run 15m Analysis
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           HIGH_RISK_TELEGRAM_CHAT_ID: ${{ secrets.HIGH_RISK_TELEGRAM_CHAT_ID }}
           BINGX_API_KEY: ${{ secrets.BINGX_API_KEY }}
           BINGX_SECRET_KEY: ${{ secrets.BINGX_SECRET_KEY }}
+          COINGECKO_API_KEY: ${{ secrets.COINGECKO_API_KEY }}
         run: python src/analyzer_15m.py
       
-      - name: Commit Updated Alert Cache
+      - name: Commit Alert Cache
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git add cache/alert_cache_15m.json
-          git commit -m "Update 15m alert cache [skip ci]" || echo "No cache changes to commit"
-          git push || echo "Push failed - using read-only token"
+          if [ -f cache/alert_cache_15m.json ]; then
+            git add cache/alert_cache_15m.json
+            git commit -m "Update 15m alert cache [skip ci]" || echo "No changes"
+            git push || echo "Push failed"
+          fi
 
-  # Separate job for daily market data refresh
+  # Market data refresh twice daily
   market_data_refresh:
     runs-on: ubuntu-latest
-    # Run once daily at 06:00 IST (00:30 UTC)
-    if: github.event.schedule == '30 0 * * *'
+    if: contains(github.event.schedule, '0 0,12 * * *')
     
     steps:
       - uses: actions/checkout@v4
@@ -62,11 +61,13 @@ jobs:
           python-version: '3.11'
       - run: pip install -r requirements.txt
       - name: Refresh Market Data
+        env:
+          COINGECKO_API_KEY: ${{ secrets.COINGECKO_API_KEY }}
         run: python src/data_fetcher.py --daily-scan
       - name: Commit Market Data
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git add cache/high_risk_market_data.json
-          git commit -m "Daily market data refresh [skip ci]" || echo "No data changes"
+          git commit -m "Market data refresh [skip ci]" || echo "No changes"
           git push || echo "Push failed"
