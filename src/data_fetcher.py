@@ -43,7 +43,6 @@ class HighRisk15mDataFetcher:
             print("⚠️ No blocked_coins.txt found, using config only")
         
         return blocked_coins
-
     
     def fetch_coingecko_coins(self):
         """Fetch high-risk coins from CoinGecko with 15m focus and API key support"""
@@ -90,7 +89,6 @@ class HighRisk15mDataFetcher:
         
         print(f"📊 Total coins fetched: {len(all_coins)}")
         return all_coins
-
     
     def apply_high_risk_filters(self, coins):
         """Apply high-risk 15m trading filters"""
