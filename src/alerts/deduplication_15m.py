@@ -3,9 +3,17 @@ High-Risk 15-Minute Alert Deduplication System
 Prevents duplicate alerts within the same 15-minute candle
 """
 
+"""
+Fixed 15-Minute Alert Deduplication System
+Perfect candle alignment with zero timing issues
+"""
+
 import json
 import os
 from datetime import datetime, timedelta
+import sys
+sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'utils'))
+from timestamp_utils import get_15m_candle_boundaries, format_ist_timestamp
 
 class HighRisk15mDeduplicator:
     def __init__(self):
@@ -13,7 +21,7 @@ class HighRisk15mDeduplicator:
         self.cache = self.load_persistent_cache()
     
     def load_persistent_cache(self):
-        """Load cache from file to persist between runs"""
+        """Load cache from file"""
         try:
             with open(self.cache_file, 'r') as f:
                 cache = json.load(f)
@@ -29,34 +37,21 @@ class HighRisk15mDeduplicator:
         with open(self.cache_file, 'w') as f:
             json.dump(self.cache, f, indent=2)
     
-    def get_15m_candle_start(self, signal_timestamp):
-        """
-        Calculate 15-minute candle start timestamp
-        15m boundaries: 00:00, 00:15, 00:30, 00:45, etc.
-        """
-        # Convert to timezone-naive datetime if needed
-        if hasattr(signal_timestamp, 'tzinfo') and signal_timestamp.tzinfo is not None:
-            ts = signal_timestamp.replace(tzinfo=None)
-        else:
-            ts = signal_timestamp
-        
-        # Floor to nearest 15-minute boundary
-        minutes = (ts.minute // 15) * 15
-        candle_start = ts.replace(minute=minutes, second=0, microsecond=0)
-        
-        print(f"🕐 Signal at {ts.strftime('%H:%M:%S')} → 15m candle: {candle_start.strftime('%H:%M')}")
-        return candle_start
-    
     def is_alert_allowed(self, symbol, signal_type, signal_timestamp):
         """
         Check if alert is allowed for this 15-minute candle
-        Only one alert per coin per signal per 15m candle
+        Uses perfect timestamp alignment
         """
-        candle_start = self.get_15m_candle_start(signal_timestamp)
-        key = f"{symbol}_{signal_type}_{candle_start.strftime('%Y%m%d_%H%M')}"
+        # Get candle boundaries
+        boundaries = get_15m_candle_boundaries(signal_timestamp)
+        candle_close_ist = boundaries['candle_close_ist']
+        
+        # Create deduplication key using IST candle close time
+        key = f"{symbol}_{signal_type}_{candle_close_ist.strftime('%Y%m%d_%H%M')}"
         
         print(f"🔍 Dedup check: {symbol} {signal_type}")
-        print(f"   Candle start: {candle_start.strftime('%Y-%m-%d %H:%M')}")
+        print(f"   Signal timestamp: {signal_timestamp}")
+        print(f"   Candle close IST: {format_ist_timestamp(candle_close_ist)}")
         print(f"   Cache key: {key}")
         
         if key in self.cache:
@@ -67,11 +62,11 @@ class HighRisk15mDeduplicator:
         # Allow alert and cache it
         self.cache[key] = datetime.utcnow().isoformat()
         self.save_persistent_cache()
-        print(f"   ✅ ALLOWED - First alert for this 15m candle")
+        print(f"   ✅ ALLOWED - First alert for this candle")
         return True
     
     def cleanup_expired_entries(self):
-        """Remove entries older than 24 hours (96 fifteen-minute candles)"""
+        """Remove entries older than 24 hours"""
         current_time = datetime.utcnow()
         expired_keys = []
         
@@ -81,11 +76,12 @@ class HighRisk15mDeduplicator:
                 if current_time - cached_time > timedelta(hours=24):
                     expired_keys.append(key)
             except ValueError:
-                expired_keys.append(key)  # Remove invalid entries
+                expired_keys.append(key)
         
         for key in expired_keys:
             del self.cache[key]
         
         if expired_keys:
             self.save_persistent_cache()
-            print(f"🧹 Cleaned up {len(expired_keys)} expired 15m cache entries")
+            print(f"🧹 Cleaned up {len(expired_keys)} expired entries")
+
