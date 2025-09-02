@@ -4,6 +4,12 @@ High-Risk 15-Minute CipherB Analysis Engine
 Real-time 15m Heikin-Ashi CipherB analysis with duplicate prevention
 """
 
+#!/usr/bin/env python3
+"""
+Fixed High-Risk 15-Minute CipherB Analysis Engine
+Perfect timing with zero alignment issues
+"""
+
 import json
 import os
 import sys
@@ -17,6 +23,7 @@ current_dir = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, current_dir)
 
 from utils.heikin_ashi import heikin_ashi
+from utils.timestamp_utils import get_15m_candle_boundaries, format_ist_timestamp, should_run_analysis_now, get_current_analysis_candle
 from indicators.cipherb_fixed import detect_cipherb_signals
 from alerts.deduplication_15m import HighRisk15mDeduplicator
 from alerts.telegram_high_risk import send_batched_high_risk_alert
@@ -28,89 +35,71 @@ class HighRisk15mAnalyzer:
         self.deduplicator = HighRisk15mDeduplicator()
         
     def load_configuration(self):
-        """Load high-risk system configuration"""
+        """Load system configuration"""
         config_path = os.path.join(os.path.dirname(__file__), '..', 'config', 'config.yaml')
         with open(config_path, 'r') as f:
             return yaml.safe_load(f)
     
     def load_high_risk_market_data(self):
-        """Load high-risk filtered market data"""
+        """Load market data"""
         cache_file = os.path.join(os.path.dirname(__file__), '..', 'cache', 'high_risk_market_data.json')
         
         if not os.path.exists(cache_file):
-            print("❌ High-risk market data not found. Run data fetcher first.")
+            print("❌ Market data not found. Run data fetcher first.")
             return None
         
         with open(cache_file, 'r') as f:
             data = json.load(f)
         
         coins = data.get('coins', [])
-        metadata = data.get('metadata', {})
-        
         print(f"📊 Loaded {len(coins)} high-risk coins")
-        print(f"🕐 Last updated: {metadata.get('last_updated', 'Unknown')}")
-        
         return coins
     
     def initialize_exchanges(self):
-        """Initialize exchange connections for 15m data"""
+        """Initialize exchanges"""
         exchanges = []
         
-        # BingX (Primary)
         try:
-            bingx_config = {
+            bingx = ccxt.bingx({
                 'apiKey': os.getenv('BINGX_API_KEY', ''),
                 'secret': os.getenv('BINGX_SECRET_KEY', ''),
-                'sandbox': False,
-                'rateLimit': 200,  # Faster for 15m
+                'rateLimit': 200,
                 'enableRateLimit': True,
-                'timeout': self.config['exchanges']['timeout'] * 1000,
-            }
-            
-            bingx = ccxt.bingx(bingx_config)
+                'timeout': 25000,
+            })
             exchanges.append(('BingX', bingx))
-            
         except Exception as e:
-            print(f"⚠️ BingX initialization failed: {e}")
+            print(f"⚠️ BingX failed: {e}")
         
-        # KuCoin (Fallback)
         try:
-            kucoin_config = {
+            kucoin = ccxt.kucoin({
                 'rateLimit': 800,
                 'enableRateLimit': True,
-                'timeout': self.config['exchanges']['timeout'] * 1000,
-            }
-            
-            kucoin = ccxt.kucoin(kucoin_config)
+                'timeout': 25000,
+            })
             exchanges.append(('KuCoin', kucoin))
-            
         except Exception as e:
-            print(f"⚠️ KuCoin initialization failed: {e}")
+            print(f"⚠️ KuCoin failed: {e}")
         
         return exchanges
     
     def fetch_15m_data(self, symbol):
-        """Fetch 15-minute OHLCV data with validation"""
-        candles_required = self.config['scan']['candles_required']
-        
+        """Fetch 15m data with proper validation"""
         for exchange_name, exchange in self.exchanges:
             try:
-                # Fetch 15m candles
-                ohlcv = exchange.fetch_ohlcv(f"{symbol}/USDT", '15m', limit=candles_required)
+                ohlcv = exchange.fetch_ohlcv(f"{symbol}/USDT", '15m', limit=200)
                 
-                if len(ohlcv) < 100:  # Need sufficient 15m data
+                if len(ohlcv) < 100:
                     continue
                 
-                # Convert to DataFrame
                 df = pd.DataFrame(ohlcv, columns=['timestamp', 'Open', 'High', 'Low', 'Close', 'Volume'])
                 df['timestamp'] = pd.to_datetime(df['timestamp'], unit='ms')
                 df.set_index('timestamp', inplace=True)
                 
-                # Convert to IST
-                df.index = df.index + pd.Timedelta(hours=5, minutes=30)
+                # Keep in UTC - don't convert to IST here
+                # IST conversion handled by timestamp_utils
                 
-                # Validate data quality
-                if self.validate_15m_data_quality(df, symbol):
+                if self.validate_data_quality(df, symbol):
                     return df, exchange_name
                 
             except Exception as e:
@@ -118,26 +107,22 @@ class HighRisk15mAnalyzer:
         
         return None, None
     
-    def validate_15m_data_quality(self, df, symbol):
-        """Validate 15m data quality"""
+    def validate_data_quality(self, df, symbol):
+        """Validate data quality"""
         if df.empty or len(df) < 50:
             return False
         
-        # Check for reasonable price ranges
         if df['Close'].iloc[-1] <= 0 or df['Volume'].iloc[-1] <= 0:
             return False
         
-        # Check for sufficient price movement
         price_range = df['High'].max() - df['Low'].min()
-        if price_range / df['Close'].mean() < 0.005:  # Less than 0.5% range
+        if price_range / df['Close'].mean() < 0.005:
             return False
         
         return True
     
     def analyze_coin_15m(self, coin_data):
-        """
-        High-risk 15-minute analysis - collect signals instead of sending immediately
-        """
+        """Analyze coin with perfect timing"""
         symbol = coin_data.get('symbol', '').upper()
         
         try:
@@ -149,16 +134,19 @@ class HighRisk15mAnalyzer:
             # Convert to Heikin-Ashi
             ha_data = heikin_ashi(price_df)
             
-            # Apply CipherB indicator
+            # Apply CipherB
             cipherb_signals = detect_cipherb_signals(ha_data, self.config['cipherb'])
             if cipherb_signals.empty:
                 return None
             
-            # Get latest signal data
-            latest_signals = cipherb_signals.iloc[-1]
-            latest_timestamp = cipherb_signals.index[-1]
+            # Get latest closed candle signal
+            latest_signals = cipherb_signals.iloc[-2]  # Use -2 for fully closed candle
+            latest_timestamp = cipherb_signals.index[-2]   # Use -2 for fully closed candle
             
-            # Check for BUY signal
+            # Get candle boundaries for this signal
+            boundaries = get_15m_candle_boundaries(latest_timestamp)
+            
+            # Check BUY signal
             if latest_signals['buySignal']:
                 if self.deduplicator.is_alert_allowed(symbol, 'BUY', latest_timestamp):
                     return {
@@ -167,10 +155,11 @@ class HighRisk15mAnalyzer:
                         'wt1': latest_signals['wt1'],
                         'wt2': latest_signals['wt2'],
                         'exchange': exchange_used,
-                        'timestamp': latest_timestamp
+                        'timestamp': latest_timestamp,
+                        'candle_close_ist': boundaries['candle_close_ist']
                     }
             
-            # Check for SELL signal
+            # Check SELL signal
             if latest_signals['sellSignal']:
                 if self.deduplicator.is_alert_allowed(symbol, 'SELL', latest_timestamp):
                     return {
@@ -179,7 +168,8 @@ class HighRisk15mAnalyzer:
                         'wt1': latest_signals['wt1'],
                         'wt2': latest_signals['wt2'],
                         'exchange': exchange_used,
-                        'timestamp': latest_timestamp
+                        'timestamp': latest_timestamp,
+                        'candle_close_ist': boundaries['candle_close_ist']
                     }
             
             return None
@@ -189,29 +179,34 @@ class HighRisk15mAnalyzer:
             return None
     
     def run_high_risk_analysis(self):
-        """Execute high-risk 15m analysis and send batched alerts"""
+        """Execute analysis with perfect timing"""
+        current_candle = get_current_analysis_candle()
+        
         print(f"\n" + "="*80)
         print("🔔 HIGH-RISK 15M CIPHERB ANALYSIS STARTING")
         print("="*80)
-        print(f"🕐 Timestamp: {datetime.now().strftime('%Y-%m-%d %H:%M:%S IST')}")
+        print(f"🕐 Current time: {format_ist_timestamp(datetime.utcnow() + timedelta(hours=5, minutes=30))}")
+        print(f"📊 Analyzing candle: {format_ist_timestamp(current_candle['candle_start_ist'], False)} - {format_ist_timestamp(current_candle['candle_close_ist'], False)}")
         print(f"⏱️ Timeframe: {self.config['system']['timeframe'].upper()}")
-        print(f"🎯 System: {self.config['system']['name']}")
         
-        # Load high-risk market data
+        # Verify timing
+        if not should_run_analysis_now():
+            print("⚠️ Running too early - candle not fully closed yet")
+            return
+        
+        # Load market data
         coins = self.load_high_risk_market_data()
         if not coins:
             return
         
-        print(f"📊 Available exchanges: {[name for name, _ in self.exchanges]}")
-        print(f"📈 High-risk coins to analyze: {len(coins)}")
+        print(f"📈 Coins to analyze: {len(coins)}")
         
-        # Collect all signals
+        # Collect signals
         all_signals = []
         total_analyzed = 0
         
         for i in range(0, len(coins), self.config['alerts']['batch_size']):
             batch = coins[i:i+self.config['alerts']['batch_size']]
-            print(f"\n🔄 Analyzing batch {i//self.config['alerts']['batch_size'] + 1}...")
             
             for coin in batch:
                 signal = self.analyze_coin_15m(coin)
@@ -221,26 +216,22 @@ class HighRisk15mAnalyzer:
                 total_analyzed += 1
                 time.sleep(self.config['exchanges']['rate_limit'])
         
-        # Send batched alert if we have signals
+        # Send batched alert
         if all_signals:
-            from alerts.telegram_high_risk import send_batched_high_risk_alert
             send_batched_high_risk_alert(all_signals)
             print(f"\n✅ Sent batched alert with {len(all_signals)} signals")
         else:
-            print(f"\n📊 No signals found in this run")
+            print(f"\n📊 No signals found")
         
-        # Analysis summary
         print(f"\n" + "="*80)
-        print("🔔 HIGH-RISK 15M ANALYSIS COMPLETE")
+        print("🔔 ANALYSIS COMPLETE")
         print("="*80)
-        print(f"🎯 Total coins analyzed: {total_analyzed}")
-        print(f"🚨 High-risk signals found: {len(all_signals)}")
-        print(f"📈 Signal rate: {len(all_signals)/total_analyzed*100:.1f}%")
+        print(f"🎯 Coins analyzed: {total_analyzed}")
+        print(f"🚨 Signals sent: {len(all_signals)}")
         print("="*80)
         
         # Cleanup
         self.deduplicator.cleanup_expired_entries()
-
 
 def main():
     analyzer = HighRisk15mAnalyzer()
