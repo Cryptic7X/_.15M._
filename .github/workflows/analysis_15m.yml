@@ -3,7 +3,7 @@ name: 15-Minute CipherB Analysis
 
 on:
   schedule:
-    - cron: '3,18,33,48 * * * *'  # Every 15 minutes (3 min after candle close)
+    - cron: '*/15 * * * *'
   workflow_dispatch:
 
 jobs:
