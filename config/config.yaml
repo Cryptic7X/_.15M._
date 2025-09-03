@@ -29,6 +29,6 @@ cipherb:
   overbought_threshold: 60
 
 scan:
-  pages: 4
-  coins_per_page: 125
+  pages: 2
+  coins_per_page: 250
   candles_required: 200
