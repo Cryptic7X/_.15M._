@@ -179,20 +179,24 @@ class HighRisk15mAnalyzer:
             return None
     
     def run_high_risk_analysis(self):
-        """Execute analysis with perfect timing"""
-        current_candle = get_current_analysis_candle()
+        """Execute analysis with FIXED timing"""
         
         print(f"\n" + "="*80)
         print("🔔 HIGH-RISK 15M CIPHERB ANALYSIS STARTING")
         print("="*80)
-        print(f"🕐 Current time: {format_ist_timestamp(datetime.utcnow() + timedelta(hours=5, minutes=30))}")
-        print(f"📊 Analyzing candle: {format_ist_timestamp(current_candle['candle_start_ist'], False)} - {format_ist_timestamp(current_candle['candle_close_ist'], False)}")
-        print(f"⏱️ Timeframe: {self.config['system']['timeframe'].upper()}")
         
-        # Verify timing
+        # Use FIXED timestamp functions
+        current_ist = get_current_ist_time()
+        print(f"🕐 Current IST time: {format_ist_timestamp(current_ist)}")
+        
+        # Check if we should run now
         if not should_run_analysis_now():
-            print("⚠️ Running too early - candle not fully closed yet")
+            print("⚠️ Analysis skipped - not the right time to run")
             return
+        
+        # Get the candle to analyze
+        current_candle = get_current_analysis_candle()
+        print(f"📊 Analyzing candle: {format_ist_timestamp(current_candle['candle_start_ist'], False)} - {format_ist_timestamp(current_candle['candle_close_ist'], False)}")
         
         # Load market data
         coins = self.load_high_risk_market_data()
