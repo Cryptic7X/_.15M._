@@ -2,13 +2,19 @@
 FIXED Timestamp Utilities - Handles UTC/IST conversion properly
 """
 
+# At top of timestamp_utils.py
 import datetime
-from datetime import timedelta
 import pytz
 
-# IST timezone
 IST = pytz.timezone('Asia/Kolkata')
 UTC = pytz.UTC
+
+def get_current_ist_time():
+    """Get current time in IST"""
+    # Correctly call datetime.datetime.utcnow()
+    utc_now = datetime.datetime.utcnow()
+    # Localize and convert to IST
+    return UTC.localize(utc_now).astimezone(IST).replace(tzinfo=None)
 
 def get_15m_candle_boundaries(timestamp, timeframe_minutes=15):
     """
@@ -102,10 +108,5 @@ def format_ist_timestamp(dt, include_date=True):
         return ist_dt.strftime('%Y-%m-%d %H:%M:%S IST')
     else:
         return ist_dt.strftime('%H:%M:%S IST')
-
-def get_current_ist_time():
-    """Get current time in IST"""
-    utc_now = datetime.utcnow()
-    return UTC.localize(utc_now).astimezone(IST).replace(tzinfo=None)
 
 
