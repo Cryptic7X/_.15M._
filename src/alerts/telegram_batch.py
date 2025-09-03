@@ -3,6 +3,11 @@ Consolidated Telegram Alert System
 Sends ALL signals in ONE message - no more spam!
 """
 
+"""
+Consolidated Telegram Alert System
+Sends ALL signals in ONE message - no more spam!
+"""
+
 import os
 import requests
 from datetime import datetime, timedelta
@@ -15,7 +20,6 @@ def get_ist_time():
 def send_consolidated_alert(all_signals):
     """
     Send ONE consolidated message with ALL detected signals
-    Exactly what you want - single clean alert!
     """
     bot_token = os.getenv('TELEGRAM_BOT_TOKEN')
     chat_id = os.getenv('HIGH_RISK_TELEGRAM_CHAT_ID')
@@ -32,15 +36,15 @@ def send_consolidated_alert(all_signals):
     sell_signals = [s for s in all_signals if s['signal_type'] == 'SELL']
 
     # Build consolidated message
-    message = f"""🔧 *FIXED 15M BATCH ALERT*
-🎯 *{len(all_signals)} PRECISE CROSSOVERS*
+    message = f"""🔧 *EXACT CIPHERB 15M ALERT*
+🎯 *{len(all_signals)} PRECISE SIGNALS*
 🕐 *{current_time_str}*
 
 """
 
     # Add BUY signals section
     if buy_signals:
-        message += "🟢 *BUY CROSSOVERS:*\n"
+        message += "🟢 *BUY SIGNALS:*\n"
         for i, signal in enumerate(buy_signals, 1):
             symbol = signal['symbol']
             price = signal['price']
@@ -69,7 +73,7 @@ def send_consolidated_alert(all_signals):
 
     # Add SELL signals section
     if sell_signals:
-        message += f"\n\n🔴 *SELL CROSSOVERS:*\n"
+        message += f"\n\n🔴 *SELL SIGNALS:*\n"
         for i, signal in enumerate(sell_signals, 1):
             symbol = signal['symbol']
             price = signal['price']
@@ -99,15 +103,12 @@ def send_consolidated_alert(all_signals):
     # Footer
     message += f"""
 
-📊 *CROSSOVER SUMMARY:*
-• Total Signals: {len(all_signals)}
-• Buy Crossovers: {len(buy_signals)}
-• Sell Crossovers: {len(sell_signals)}
-• Precise Detection: ✅
-• Single Message: ✅
+📊 *SIGNAL SUMMARY:*
+• Total: {len(all_signals)} | Buy: {len(buy_signals)} | Sell: {len(sell_signals)}
+• Exact Pine Script Logic ✅
+• 15m Closed Candles Only ✅
 
-─────────────────────────────
-🔧 *Fixed 15m System v1.0*"""
+🔧 *Exact CipherB System v1.0*"""
 
     # Send single consolidated message
     url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
@@ -121,9 +122,9 @@ def send_consolidated_alert(all_signals):
     try:
         response = requests.post(url, json=payload, timeout=30)
         response.raise_for_status()
-        print(f"📱 Consolidated alert sent successfully: {len(all_signals)} signals")
+        print(f"📱 Consolidated alert sent: {len(all_signals)} signals")
         return True
     except Exception as e:
-        print(f"❌ Consolidated alert failed: {e}")
+        print(f"❌ Alert failed: {e}")
         return False
 
