@@ -3,85 +3,68 @@ High-Risk 15-Minute Alert Deduplication System
 Prevents duplicate alerts within the same 15-minute candle
 """
 
-"""
-Fixed 15-Minute Alert Deduplication System
-Perfect candle alignment with zero timing issues
-"""
-
 import json
 import os
 from datetime import datetime, timedelta
-import sys
-sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'utils'))
-from timestamp_utils import get_15m_candle_boundaries, format_ist_timestamp
 
-class HighRisk15mDeduplicator:
+class AlertDeduplicator:
     def __init__(self):
         self.cache_file = os.path.join(os.path.dirname(__file__), '..', '..', 'cache', 'alert_cache_15m.json')
-        self.cache = self.load_persistent_cache()
-    
-    def load_persistent_cache(self):
-        """Load cache from file"""
+        self.cache = self.load_cache()
+
+    def load_cache(self):
         try:
             with open(self.cache_file, 'r') as f:
-                cache = json.load(f)
-            print(f"📁 Loaded 15m alert cache: {len(cache)} entries")
-            return cache
-        except (FileNotFoundError, json.JSONDecodeError):
-            print("📁 No existing 15m cache found, starting fresh")
+                return json.load(f)
+        except:
             return {}
-    
-    def save_persistent_cache(self):
-        """Save cache to file"""
+
+    def save_cache(self):
         os.makedirs(os.path.dirname(self.cache_file), exist_ok=True)
         with open(self.cache_file, 'w') as f:
-            json.dump(self.cache, f, indent=2)
-    
-    def is_alert_allowed(self, symbol, signal_type, signal_timestamp):
-        """
-        Check if alert is allowed for this 15-minute candle
-        Uses perfect timestamp alignment
-        """
-        # Get candle boundaries
-        boundaries = get_15m_candle_boundaries(signal_timestamp)
-        candle_close_ist = boundaries['candle_close_ist']
+            json.dump(self.cache, f)
+
+    def get_candle_key(self, symbol, signal_type, timestamp):
+        # Convert to IST and round to 15-minute boundary
+        if hasattr(timestamp, 'tzinfo') and timestamp.tzinfo:
+            ts = timestamp.replace(tzinfo=None)
+        else:
+            ts = timestamp
         
-        # Create deduplication key using IST candle close time
-        key = f"{symbol}_{signal_type}_{candle_close_ist.strftime('%Y%m%d_%H%M')}"
+        # Round to 15-minute candle start
+        minutes = (ts.minute // 15) * 15
+        candle_start = ts.replace(minute=minutes, second=0, microsecond=0)
         
-        print(f"🔍 Dedup check: {symbol} {signal_type}")
-        print(f"   Signal timestamp: {signal_timestamp}")
-        print(f"   Candle close IST: {format_ist_timestamp(candle_close_ist)}")
-        print(f"   Cache key: {key}")
+        key = f"{symbol}_{signal_type}_{candle_start.strftime('%Y%m%d_%H%M')}"
+        return key
+
+    def is_allowed(self, symbol, signal_type, timestamp):
+        key = self.get_candle_key(symbol, signal_type, timestamp)
         
         if key in self.cache:
-            cached_time = self.cache[key]
-            print(f"   ❌ BLOCKED - Already sent at: {cached_time}")
-            return False
+            return False  # Already sent
         
-        # Allow alert and cache it
+        # Allow and store
         self.cache[key] = datetime.utcnow().isoformat()
-        self.save_persistent_cache()
-        print(f"   ✅ ALLOWED - First alert for this candle")
+        self.save_cache()
+        self.cleanup_old()
         return True
-    
-    def cleanup_expired_entries(self):
-        """Remove entries older than 24 hours"""
-        current_time = datetime.utcnow()
-        expired_keys = []
+
+    def cleanup_old(self):
+        cutoff = datetime.utcnow() - timedelta(days=1)
+        to_remove = []
         
         for key, timestamp_str in self.cache.items():
             try:
-                cached_time = datetime.fromisoformat(timestamp_str)
-                if current_time - cached_time > timedelta(hours=24):
-                    expired_keys.append(key)
-            except ValueError:
-                expired_keys.append(key)
+                ts = datetime.fromisoformat(timestamp_str)
+                if ts < cutoff:
+                    to_remove.append(key)
+            except:
+                to_remove.append(key)
         
-        for key in expired_keys:
+        for key in to_remove:
             del self.cache[key]
         
-        if expired_keys:
-            self.save_persistent_cache()
-            print(f"🧹 Cleaned up {len(expired_keys)} expired entries")
+        if to_remove:
+            self.save_cache()
 
