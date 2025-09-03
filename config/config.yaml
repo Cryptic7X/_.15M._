@@ -10,29 +10,27 @@ system:
 apis:
   coingecko:
     base_url: "https://api.coingecko.com/api/v3"
-    rate_limit: 3.0  # Increased delay between requests
-    timeout: 60      # Increased timeout to 60 seconds
+    rate_limit: 4.0  # 4 seconds between requests (safer)
+    timeout: 60      # 60 seconds timeout
 
 exchange:
   primary: "bingx"
-  fallback:
-    - "kucoin" 
-    - "bybit"
-  rate_limit_sec: 0.5  # Slightly slower to avoid issues
+  fallback: ["kucoin", "bybit"]
+  rate_limit_sec: 0.5
   timeout_sec: 30
 
 filters:
-  min_market_cap: 50000000    # Reduced to 50M to get more coins
-  min_volume_24h: 10000000    # Reduced to 10M to get more coins
+  min_market_cap: 100000000    # 100M (reduced for more coins)
+  min_volume_24h: 20000000    # 20M (reduced for more coins)
 
 alert:
-  max_coins_per_run: 165
+  max_coins_per_run: 200
   cooldown_minutes: 15
-  batch_size: 20  # Smaller batches for stability
+  batch_size: 20
 
 scan:
-  pages: 2          # Reduced pages to avoid timeouts  
-  coins_per_page: 100  # Smaller page size for reliability
+  pages: 2          # Reduced to avoid timeouts
+  coins_per_page: 100  # Reduced for reliability
   candles_required: 200
 
 cipherb:
