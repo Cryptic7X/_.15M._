@@ -105,6 +105,7 @@ def format_ist_timestamp(dt, include_date=True):
 
 def get_current_ist_time():
     """Get current time in IST"""
-    utc_now = datetime.datetime.utcnow()
+    utc_now = datetime.utcnow()
     return UTC.localize(utc_now).astimezone(IST).replace(tzinfo=None)
+
 
