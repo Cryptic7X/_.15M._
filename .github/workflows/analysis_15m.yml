@@ -1,20 +1,37 @@
-# .github/workflows/analysis_15m.yml
-
 name: High-Risk CipherB 15-Minute Analysis
 
 on:
   schedule:
-    # Run exactly 2 minutes after each 15m candle closes in IST
-    # IST 15m closes: 7:00,7:15,7:30,7:45 = UTC: 13:30,13:45,14:00,14:15
-    # Run at UTC: 13:32,13:47,14:02,14:17 = IST: 7:02,7:17,7:32,7:47
-    - cron: '32,47 * * * *'  # :32 and :47 every hour
-    - cron: '2,17 * * * *'   # :02 and :17 every hour
+    # 15m Analysis - Run 2 minutes after each candle closes in IST
+    # IST times: 5:02, 5:17, 5:32, 5:47, 6:02, 6:17, etc.
+    # UTC times: 23:32, 23:47 (prev day), 0:02, 0:17, 0:32, 0:47, etc.
+    
+    # Evening hours (IST 17:00-23:45 = UTC 11:30-18:15)
+    - cron: '32,47 11,12,13,14,15,16,17,18 * * *'
+    - cron: '2,17 12,13,14,15,16,17,18,19 * * *'
+    
+    # Night hours (IST 00:00-05:45 = UTC 18:30-00:15 next day)
+    - cron: '32,47 18,19,20,21,22,23 * * *'
+    - cron: '2,17 19,20,21,22,23,0 * * *'
+    
+    # Morning hours (IST 06:00-16:45 = UTC 00:30-11:15)
+    - cron: '32,47 0,1,2,3,4,5,6,7,8,9,10,11 * * *'
+    - cron: '2,17 1,2,3,4,5,6,7,8,9,10,11,12 * * *'
+    
+  # Daily market data refresh at 5:30 AM and 5:30 PM IST
+  # 5:30 AM IST = 00:00 UTC, 5:30 PM IST = 12:00 UTC
+  schedule:
+    - cron: '0 0,12 * * *'  # Market data refresh
+    
   workflow_dispatch:
 
 jobs:
+  # 15-minute analysis job
   high_risk_analysis:
     runs-on: ubuntu-latest
     timeout-minutes: 8
+    # Skip market data refresh runs
+    if: github.event_name == 'workflow_dispatch' || !contains(github.event.schedule, '0 0,12 * * *')
     
     steps:
       - name: Checkout Repository
@@ -28,7 +45,7 @@ jobs:
       - name: Install Dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements.txt
+          pip install ccxt pandas numpy PyYAML requests python-dateutil pytz
       
       - name: Run 15m Analysis
         env:
@@ -49,21 +66,32 @@ jobs:
             git push || echo "Push failed"
           fi
 
-  # Market data refresh twice daily
+  # Market data refresh job - runs separately
   market_data_refresh:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
+    # Only run for scheduled market refresh times
     if: contains(github.event.schedule, '0 0,12 * * *')
     
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v4
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+      
+      - name: Setup Python
+        uses: actions/setup-python@v4
         with:
           python-version: '3.11'
-      - run: pip install -r requirements.txt
-      - name: Refresh Market Data
+      
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install ccxt pandas numpy PyYAML requests python-dateutil pytz
+      
+      - name: Run Market Data Refresh
         env:
           COINGECKO_API_KEY: ${{ secrets.COINGECKO_API_KEY }}
         run: python src/data_fetcher.py --daily-scan
+      
       - name: Commit Market Data
         run: |
           git config --global user.name "github-actions[bot]"
