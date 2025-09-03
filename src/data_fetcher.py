@@ -7,7 +7,8 @@ import yaml
 from datetime import datetime
 import argparse
 import random
-from urllib.parse import urljoin
+from requests.adapters import HTTPAdapter
+from urllib3.util.retry import Retry
 
 class RobustMarketDataFetcher:
     def __init__(self):
@@ -15,13 +16,29 @@ class RobustMarketDataFetcher:
         with open(config_path) as f:
             self.config = yaml.safe_load(f)
         self.blocked_coins = self.load_blocked_coins()
-        self.session = self.create_session()
+        self.session = self.create_robust_session()
 
-    def create_session(self):
-        """Create a requests session with proper configuration"""
+    def create_robust_session(self):
+        """Create requests session with exponential backoff retry"""
         session = requests.Session()
+        
+        # Configure retry strategy
+        retry_strategy = Retry(
+            total=5,  # Max 5 retries
+            backoff_factor=2,  # 2, 4, 8, 16, 32 seconds
+            status_forcelist=[429, 500, 502, 503, 504],  # HTTP codes to retry
+            allowed_methods=["HEAD", "GET", "OPTIONS"],
+            backoff_jitter=0.5  # Add randomness to avoid thundering herd
+        )
+        
+        # Mount adapter with retry strategy
+        adapter = HTTPAdapter(max_retries=retry_strategy)
+        session.mount("https://", adapter)
+        session.mount("http://", adapter)
+        
+        # Set headers
         session.headers.update({
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+            'User-Agent': 'CipherB-15m-System/1.0',
             'Accept': 'application/json',
             'Accept-Encoding': 'gzip, deflate',
             'Connection': 'keep-alive'
@@ -33,7 +50,7 @@ class RobustMarketDataFetcher:
             session.headers['X-CoinGecko-Api-Key'] = api_key
             print("✅ Using CoinGecko API Key")
         else:
-            print("⚠️ No API Key found - using public API (lower limits)")
+            print("⚠️ No API Key - using public API (30 calls/min limit)")
             
         return session
 
@@ -49,82 +66,49 @@ class RobustMarketDataFetcher:
         print(f"📋 Loaded {len(blocked)} blocked coins")
         return blocked
 
-    def make_request_with_retry(self, url, params, max_retries=5):
-        """Make API request with exponential backoff retry logic"""
-        for attempt in range(max_retries):
-            try:
-                # Increase timeout significantly
-                timeout = 60  # 60 seconds timeout
-                
-                print(f"🔄 Attempt {attempt + 1}/{max_retries} - Timeout: {timeout}s")
-                
-                response = self.session.get(
-                    url, 
-                    params=params, 
-                    timeout=timeout,
-                    verify=True  # Ensure SSL verification
-                )
-                
-                # Handle rate limiting
-                if response.status_code == 429:
-                    retry_after = int(response.headers.get('Retry-After', 60))
-                    print(f"⏳ Rate limited. Waiting {retry_after} seconds...")
-                    time.sleep(retry_after)
-                    continue
-                
-                response.raise_for_status()
-                return response.json()
-                
-            except requests.exceptions.Timeout:
-                wait_time = min(300, (2 ** attempt) + random.uniform(0, 1))  # Max 5 minutes
-                print(f"⏰ Timeout on attempt {attempt + 1}. Waiting {wait_time:.1f}s before retry...")
+    def handle_rate_limit(self, response):
+        """Handle rate limiting with proper delays"""
+        if response.status_code == 429:
+            retry_after = response.headers.get('Retry-After')
+            if retry_after:
+                wait_time = int(retry_after)
+                print(f"⏳ Rate limited. Waiting {wait_time} seconds...")
+                time.sleep(wait_time + 1)  # Add 1 second buffer
+                return True
+            else:
+                # Default wait for rate limiting
+                wait_time = 60
+                print(f"⏳ Rate limited (no Retry-After header). Waiting {wait_time} seconds...")
                 time.sleep(wait_time)
-                
-            except requests.exceptions.ConnectionError as e:
-                wait_time = min(180, (2 ** attempt) + random.uniform(0, 1))  # Max 3 minutes
-                print(f"🌐 Connection error on attempt {attempt + 1}: {str(e)[:100]}")
-                print(f"   Waiting {wait_time:.1f}s before retry...")
-                time.sleep(wait_time)
-                
-            except requests.exceptions.HTTPError as e:
-                if response.status_code == 503:  # Service unavailable
-                    wait_time = min(300, (2 ** attempt) + random.uniform(0, 1))
-                    print(f"🚫 Service unavailable. Waiting {wait_time:.1f}s...")
-                    time.sleep(wait_time)
-                else:
-                    print(f"❌ HTTP Error {response.status_code}: {e}")
-                    break
-                    
-            except Exception as e:
-                print(f"❌ Unexpected error on attempt {attempt + 1}: {str(e)[:100]}")
-                if attempt == max_retries - 1:
-                    break
-                time.sleep(30)  # Short wait for unexpected errors
-        
-        print(f"❌ All {max_retries} attempts failed")
-        return None
+                return True
+        return False
 
     def fetch_market_coins(self):
         """Fetch coins with robust error handling"""
-        # Use public API endpoint
+        # **FIX: Use correct config path**
         base_url = self.config['apis']['coingecko']['base_url']
+        rate_limit_delay = self.config['apis']['coingecko']['rate_limit']
+        timeout = self.config['apis']['coingecko']['timeout']
+        
         coins = []
         
         print(f"🚀 Starting CoinGecko API fetch...")
         print(f"📡 Base URL: {base_url}")
+        print(f"⏱️ Rate limit delay: {rate_limit_delay}s")
+        print(f"🔄 Timeout: {timeout}s")
         
-        # Check API status first
+        # Test API connectivity first
         try:
             ping_response = self.session.get(f"{base_url}/ping", timeout=30)
             if ping_response.status_code == 200:
                 print("✅ CoinGecko API is responding")
             else:
-                print(f"⚠️ API ping returned status: {ping_response.status_code}")
-        except:
-            print("⚠️ Could not ping API - continuing anyway")
+                print(f"⚠️ API ping status: {ping_response.status_code}")
+        except Exception as e:
+            print(f"⚠️ API ping failed: {e}")
 
-        # Reduce pages and per_page for reliability
-        pages = min(self.config['scan']['pages'], 2)  # Max 2 pages to avoid timeouts
+        # Reduced limits for reliability
+        pages = min(self.config['scan']['pages'], 2)  # Max 2 pages
         per_page = min(self.config['scan']['coins_per_page'], 100)  # Max 100 per page
         
         for page in range(1, pages + 1):
@@ -137,40 +121,60 @@ class RobustMarketDataFetcher:
                 'price_change_percentage': '24h'
             }
             
-            print(f"\n📄 Fetching page {page}/{pages} (limit: {per_page})")
+            print(f"\n📄 Fetching page {page}/{pages}")
             
-            url = f"{base_url}/coins/markets"
-            data = self.make_request_with_retry(url, params)
+            max_attempts = 3
+            for attempt in range(max_attempts):
+                try:
+                    url = f"{base_url}/coins/markets"
+                    print(f"🔄 Attempt {attempt + 1}/{max_attempts}")
+                    
+                    response = self.session.get(url, params=params, timeout=timeout)
+                    
+                    # Handle rate limiting
+                    if self.handle_rate_limit(response):
+                        continue  # Retry after waiting
+                    
+                    response.raise_for_status()
+                    data = response.json()
+                    
+                    if not data:
+                        print(f"📭 No data for page {page} - stopping")
+                        break
+                        
+                    coins.extend(data)
+                    print(f"✅ Page {page}: {len(data)} coins fetched")
+                    break  # Success, exit retry loop
+                    
+                except requests.exceptions.RequestException as e:
+                    print(f"❌ Attempt {attempt + 1} failed: {str(e)[:100]}")
+                    if attempt == max_attempts - 1:
+                        print(f"❌ All attempts failed for page {page}")
+                        break
+                    
+                    # Wait before retry
+                    wait_time = min(60, (2 ** attempt) + random.uniform(0, 2))
+                    print(f"⏳ Waiting {wait_time:.1f}s before retry...")
+                    time.sleep(wait_time)
             
-            if data is None:
-                print(f"❌ Failed to fetch page {page}")
-                continue
-                
-            if not data:  # Empty response
-                print(f"📭 No data returned for page {page} - stopping")
-                break
-                
-            coins.extend(data)
-            print(f"✅ Page {page}: {len(data)} coins fetched")
-            
-            # Longer delay between requests to avoid rate limiting
-            if page < pages:  # Don't wait after last page
-                delay = self.config['apis']['rate_limit'] * 2  # Double the configured delay
-                print(f"⏳ Waiting {delay}s before next request...")
-                time.sleep(delay)
+            # Wait between pages to respect rate limits
+            if page < pages:
+                print(f"⏳ Waiting {rate_limit_delay}s before next page...")
+                time.sleep(rate_limit_delay)
 
         print(f"\n📊 Total coins fetched: {len(coins)}")
         return coins
 
     def filter_coins(self, coins):
-        """Filter coins with improved validation"""
+        """Filter coins with detailed stats"""
         min_cap = self.config['filters']['min_market_cap']
         min_vol = self.config['filters']['min_volume_24h']
         filtered = []
         
         stats = {
+            'total': len(coins),
             'blocked': 0,
-            'low_cap': 0, 
+            'low_cap': 0,
             'low_volume': 0,
             'invalid_data': 0,
             'qualified': 0
@@ -185,21 +189,20 @@ class RobustMarketDataFetcher:
                     stats['blocked'] += 1
                     continue
                 
-                # Validate required fields
+                # Validate data
                 cap = coin.get('market_cap')
-                vol = coin.get('total_volume') 
+                vol = coin.get('total_volume')
                 price = coin.get('current_price')
                 
-                if not all([cap, vol, price]) or cap <= 0 or vol <= 0 or price <= 0:
+                if not all([cap, vol, price]) or any(x <= 0 for x in [cap, vol, price]):
                     stats['invalid_data'] += 1
                     continue
                 
-                # Check market cap threshold
+                # Apply filters
                 if cap < min_cap:
                     stats['low_cap'] += 1
                     continue
-                
-                # Check volume threshold
+                    
                 if vol < min_vol:
                     stats['low_volume'] += 1
                     continue
@@ -207,23 +210,24 @@ class RobustMarketDataFetcher:
                 filtered.append(coin)
                 stats['qualified'] += 1
                 
-            except Exception as e:
+            except Exception:
                 stats['invalid_data'] += 1
                 continue
 
-        # Print detailed filtering stats
+        # Print detailed stats
         print(f"\n📋 FILTERING RESULTS:")
+        print(f"   📊 Total processed: {stats['total']}")
         print(f"   ✅ Qualified: {stats['qualified']}")
         print(f"   🚫 Blocked: {stats['blocked']}")
-        print(f"   📊 Low market cap: {stats['low_cap']}")
-        print(f"   📈 Low volume: {stats['low_volume']}")
+        print(f"   📊 Below ${min_cap/1_000_000:.0f}M cap: {stats['low_cap']}")
+        print(f"   📈 Below ${min_vol/1_000_000:.0f}M volume: {stats['low_volume']}")
         print(f"   ❌ Invalid data: {stats['invalid_data']}")
-        print(f"   📊 Filter efficiency: {stats['qualified']/len(coins)*100:.1f}%")
+        print(f"   🎯 Success rate: {stats['qualified']/stats['total']*100:.1f}%")
         
         return filtered
 
     def save_to_cache(self, coins):
-        """Save coins to cache with metadata"""
+        """Save with comprehensive metadata"""
         cache_dir = os.path.join(os.path.dirname(__file__), '..', 'cache')
         os.makedirs(cache_dir, exist_ok=True)
         
@@ -233,8 +237,9 @@ class RobustMarketDataFetcher:
             'metadata': {
                 'last_updated': datetime.utcnow().isoformat(),
                 'count': len(coins),
-                'system': 'CipherB Professional 15m',
-                'filters_applied': {
+                'system': self.config['system']['name'],
+                'version': self.config['system']['version'],
+                'filters': {
                     'min_market_cap': self.config['filters']['min_market_cap'],
                     'min_volume_24h': self.config['filters']['min_volume_24h']
                 }
@@ -244,46 +249,49 @@ class RobustMarketDataFetcher:
         with open(cache_file, 'w') as f:
             json.dump(cache_data, f, indent=2)
         
-        print(f"💾 Saved {len(coins)} coins to cache")
+        print(f"💾 Saved {len(coins)} qualified coins to cache")
         return cache_file
 
     def run_daily_scan(self):
-        """Run the complete market data fetch process"""
+        """Execute complete fetch process with error handling"""
         print("="*80)
         print("🚀 ROBUST MARKET DATA FETCH STARTING")
         print("="*80)
         print(f"🕐 Timestamp: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
         
         try:
-            # Fetch coins with retry logic
+            # Fetch coins
             coins = self.fetch_market_coins()
             
             if not coins:
-                print("❌ No coins fetched - creating empty cache")
-                self.save_to_cache([])  # Save empty cache to prevent analyzer errors
+                print("❌ No coins fetched - saving empty cache")
+                self.save_to_cache([])
                 return
             
-            # Filter qualified coins
+            # Filter coins
             filtered = self.filter_coins(coins)
             
-            if not filtered:
-                print("⚠️ No coins passed filtering - check filter criteria")
-                
-            # Save to cache
+            # Save to cache (even if empty to prevent analyzer errors)
             cache_file = self.save_to_cache(filtered)
             
             print("\n" + "="*80)
             print("✅ MARKET DATA FETCH COMPLETE")
             print("="*80)
-            print(f"📊 Raw coins: {len(coins)}")
+            print(f"📊 Total fetched: {len(coins)}")
             print(f"✅ Qualified coins: {len(filtered)}")
-            print(f"💾 Cache file: {cache_file}")
+            print(f"💾 Cache location: {cache_file}")
+            if filtered:
+                print(f"📈 Top coins: {', '.join([c['symbol'].upper() for c in filtered[:5]])}")
             print("="*80)
             
         except Exception as e:
-            print(f"\n❌ Critical error during fetch: {e}")
-            # Save empty cache to prevent analyzer errors
+            print(f"\n❌ Critical error: {e}")
+            import traceback
+            print(f"📋 Full error: {traceback.format_exc()}")
+            
+            # Save empty cache to prevent downstream errors
             self.save_to_cache([])
+            print("💾 Saved empty cache to prevent analyzer errors")
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Robust Market Data Fetcher')
@@ -295,3 +303,4 @@ if __name__ == '__main__':
         fetcher.run_daily_scan()
     else:
         print("Use --daily-scan flag to run the fetcher")
+
