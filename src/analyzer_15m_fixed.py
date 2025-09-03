@@ -19,8 +19,7 @@ sys.path.insert(0, os.path.dirname(__file__))
 
 from alerts.telegram_batch import send_consolidated_alert
 from alerts.deduplication_fixed import FixedDeduplicator
-# REMOVED: from utils.heikin_ashi import heikin_ashi  ← This was the problem!
-from indicators.cipherb_precise import detect_precise_cipherb_signals
+from indicators.cipherb_exact import detect_exact_cipherb_signals
 
 def get_ist_time():
     """Convert UTC to IST"""
@@ -107,27 +106,35 @@ class Fixed15mAnalyzer:
         return None, None
 
     def analyze_coin_precise(self, coin_data):
-        """
-        Precise analysis with exact crossover detection
-        Uses PURE OHLCV data (no Heikin Ashi conversion)
-        """
         symbol = coin_data.get('symbol', '').upper()
         
         try:
-            # Fetch pure OHLCV data (NO Heikin Ashi)
+            # Fetch pure OHLCV data
             price_df, exchange_used = self.fetch_15m_ohlcv(symbol)
-            if price_df is None:
+            if price_df is None or len(price_df) < 50:
                 return None
             
-            # Apply PRECISE CipherB detection directly on raw OHLCV
-            signals_df = detect_precise_cipherb_signals(price_df, self.config['cipherb'])
-            if len(signals_df) < 2:
-                return None  # Not enough bars to check latest closed
+            # Apply EXACT CipherB detection (matches your Pine Script)
+            signals_df = detect_exact_cipherb_signals(price_df, self.config['cipherb'])
+            if signals_df.empty:
+                return None
             
-            latest_signal = signals_df.iloc[-2]          # SECOND TO LAST = closed bar
+            # Check only closed candles (second to last)
+            if len(signals_df) < 2:
+                return None
+                
+            latest_signal = signals_df.iloc[-2]  # CLOSED candle
             signal_timestamp = signals_df.index[-2]
             
-            # Now continue logic for buy/sell signals **using only this just-closed bar**
+            # Debug logging to compare with TradingView
+            if symbol == 'ETH':  # Debug specific coin
+                print(f"🔍 {symbol} Debug at {signal_timestamp.strftime('%H:%M')}:")
+                print(f"   WT1: {latest_signal['wt1']:.2f}")
+                print(f"   WT2: {latest_signal['wt2']:.2f}")
+                print(f"   Buy: {latest_signal['buySignal']}")
+                print(f"   Sell: {latest_signal['sellSignal']}")
+            
+            # Check for EXACT Pine Script BUY signal
             if latest_signal['buySignal']:
                 if self.deduplicator.is_crossover_allowed(symbol, 'BUY', signal_timestamp):
                     return {
@@ -143,6 +150,7 @@ class Fixed15mAnalyzer:
                         'coin_data': coin_data
                     }
             
+            # Check for EXACT Pine Script SELL signal
             if latest_signal['sellSignal']:
                 if self.deduplicator.is_crossover_allowed(symbol, 'SELL', signal_timestamp):
                     return {
