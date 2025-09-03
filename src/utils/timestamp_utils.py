@@ -1,33 +1,42 @@
 """
-Perfect Timestamp Utilities for 15-Minute CipherB System
-Fixed to always analyze the correct closed candle
+FIXED Timestamp Utilities - Handles UTC/IST conversion properly
 """
 
 import datetime
-import pandas as pd
 from datetime import timedelta
+import pytz
 
-def get_15m_candle_boundaries(utc_timestamp, timeframe_minutes=15):
+# IST timezone
+IST = pytz.timezone('Asia/Kolkata')
+UTC = pytz.UTC
+
+def get_15m_candle_boundaries(timestamp, timeframe_minutes=15):
     """
-    Get exact 15-minute candle start and close times in both UTC and IST
+    Get exact 15-minute candle boundaries with proper timezone handling
     """
-    # Convert to naive UTC datetime
-    if hasattr(utc_timestamp, 'tzinfo') and utc_timestamp.tzinfo is not None:
-        utc_dt = utc_timestamp.tz_convert('UTC').tz_localize(None)
-    elif isinstance(utc_timestamp, pd.Timestamp):
-        utc_dt = utc_timestamp.to_pydatetime()
+    # Ensure we have a UTC datetime
+    if hasattr(timestamp, 'tzinfo'):
+        if timestamp.tzinfo is None:
+            # Assume it's UTC if naive
+            utc_dt = UTC.localize(timestamp)
+        else:
+            # Convert to UTC
+            utc_dt = timestamp.astimezone(UTC)
     else:
-        utc_dt = utc_timestamp
+        # Plain datetime - assume UTC
+        utc_dt = UTC.localize(timestamp)
     
-    # Floor to 15-minute boundary in UTC
-    minutes = (utc_dt.minute // timeframe_minutes) * timeframe_minutes
-    candle_start_utc = utc_dt.replace(minute=minutes, second=0, microsecond=0)
+    # Remove timezone for calculation
+    utc_naive = utc_dt.replace(tzinfo=None)
+    
+    # Floor to 15-minute boundary
+    minutes = (utc_naive.minute // timeframe_minutes) * timeframe_minutes
+    candle_start_utc = utc_naive.replace(minute=minutes, second=0, microsecond=0)
     candle_close_utc = candle_start_utc + timedelta(minutes=timeframe_minutes)
     
-    # Convert to IST (UTC + 5:30)
-    ist_offset = timedelta(hours=5, minutes=30)
-    candle_start_ist = candle_start_utc + ist_offset
-    candle_close_ist = candle_close_utc + ist_offset
+    # Convert to IST
+    candle_start_ist = (UTC.localize(candle_start_utc)).astimezone(IST).replace(tzinfo=None)
+    candle_close_ist = (UTC.localize(candle_close_utc)).astimezone(IST).replace(tzinfo=None)
     
     return {
         'candle_start_utc': candle_start_utc,
@@ -36,35 +45,66 @@ def get_15m_candle_boundaries(utc_timestamp, timeframe_minutes=15):
         'candle_close_ist': candle_close_ist
     }
 
-def format_ist_timestamp(dt, include_date=True):
-    """Format datetime as IST string"""
-    if include_date:
-        return dt.strftime('%Y-%m-%d %H:%M:%S IST')
-    else:
-        return dt.strftime('%H:%M:%S IST')
-
 def should_run_analysis_now():
     """
-    Always return True since GitHub Actions cron handles timing
+    FIXED: Check if analysis should run now
     """
-    return True
+    # Get current UTC time
+    now_utc = datetime.datetime.utcnow()
+    
+    # Find the most recent 15m candle close
+    boundaries = get_15m_candle_boundaries(now_utc)
+    
+    # Check if at least 2 minutes have passed since candle close
+    time_since_close = now_utc - boundaries['candle_close_utc']
+    
+    print(f"🔍 Timing Check:")
+    print(f"   Current UTC: {now_utc}")
+    print(f"   Candle close UTC: {boundaries['candle_close_utc']}")
+    print(f"   Time since close: {time_since_close}")
+    print(f"   Should run: {time_since_close >= timedelta(minutes=2) and time_since_close < timedelta(minutes=15)}")
+    
+    # Run if 2-15 minutes after candle close
+    return (time_since_close >= timedelta(minutes=2) and 
+            time_since_close < timedelta(minutes=15))
 
 def get_current_analysis_candle():
     """
-    Get the most recently CLOSED 15m candle that we should analyze
+    Get the most recently closed candle to analyze
     """
     now_utc = datetime.datetime.utcnow()
     
-    # Go back 1 candle to ensure we analyze a fully closed candle
-    # If current time is 05:08 UTC, we want to analyze 04:45-05:00 candle
-    analysis_time = now_utc - timedelta(minutes=15)
+    # Get current candle boundaries
+    current_boundaries = get_15m_candle_boundaries(now_utc)
     
-    boundaries = get_15m_candle_boundaries(analysis_time)
+    # If less than 2 minutes since close, analyze current candle
+    # If more than 2 minutes, we should be analyzing it
+    time_since_close = now_utc - current_boundaries['candle_close_utc']
     
-    print(f"🔍 Debug timing:")
-    print(f"   Current UTC: {now_utc.strftime('%H:%M:%S')}")
-    print(f"   Analysis time: {analysis_time.strftime('%H:%M:%S')}")
-    print(f"   Candle UTC: {boundaries['candle_start_utc'].strftime('%H:%M')}-{boundaries['candle_close_utc'].strftime('%H:%M')}")
-    print(f"   Candle IST: {boundaries['candle_start_ist'].strftime('%H:%M')}-{boundaries['candle_close_ist'].strftime('%H:%M')}")
+    if time_since_close >= timedelta(minutes=2):
+        # Analyze the candle that just closed
+        return current_boundaries
+    else:
+        # Too soon - analyze previous candle
+        prev_close_utc = current_boundaries['candle_close_utc'] - timedelta(minutes=15)
+        return get_15m_candle_boundaries(prev_close_utc)
+
+def format_ist_timestamp(dt, include_date=True):
+    """Format datetime as IST string"""
+    if dt.tzinfo is None:
+        # If naive, assume it's already IST
+        ist_dt = dt
+    else:
+        # Convert to IST
+        ist_dt = dt.astimezone(IST).replace(tzinfo=None)
     
-    return boundaries
+    if include_date:
+        return ist_dt.strftime('%Y-%m-%d %H:%M:%S IST')
+    else:
+        return ist_dt.strftime('%H:%M:%S IST')
+
+def get_current_ist_time():
+    """Get current time in IST"""
+    utc_now = datetime.datetime.utcnow()
+    return UTC.localize(utc_now).astimezone(IST).replace(tzinfo=None)
+
