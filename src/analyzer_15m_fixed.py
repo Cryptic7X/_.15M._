@@ -2,8 +2,8 @@
 """
 Fixed Professional 15m Analyzer
 - Precise crossover detection (no false signals)
-- Batched alerts (single consolidated message)
-- Robust deduplication
+- Batched alerts (single consolidated message)  
+- NO Heikin Ashi - Pure OHLCV data only
 """
 
 import os
@@ -19,7 +19,7 @@ sys.path.insert(0, os.path.dirname(__file__))
 
 from alerts.telegram_batch import send_consolidated_alert
 from alerts.deduplication_fixed import FixedDeduplicator
-from utils.heikin_ashi import heikin_ashi
+# REMOVED: from utils.heikin_ashi import heikin_ashi  ← This was the problem!
 from indicators.cipherb_precise import detect_precise_cipherb_signals
 
 def get_ist_time():
@@ -81,7 +81,7 @@ class Fixed15mAnalyzer:
         return exchanges
 
     def fetch_15m_ohlcv(self, symbol):
-        """Fetch pure OHLCV data for 15m analysis"""
+        """Fetch PURE OHLCV data - NO Heikin Ashi conversion"""
         
         for exchange_name, exchange in self.exchanges:
             try:
@@ -90,7 +90,7 @@ class Fixed15mAnalyzer:
                 if len(ohlcv) < 100:
                     continue
                 
-                # Pure DataFrame - NO Heikin Ashi
+                # Pure DataFrame - Direct OHLCV data (NO Heikin Ashi!)
                 df = pd.DataFrame(ohlcv, columns=['timestamp', 'open', 'high', 'low', 'close', 'volume'])
                 df['timestamp'] = pd.to_datetime(df['timestamp'], unit='ms')
                 df.set_index('timestamp', inplace=True)
@@ -109,17 +109,17 @@ class Fixed15mAnalyzer:
     def analyze_coin_precise(self, coin_data):
         """
         Precise analysis with exact crossover detection
-        Returns signal only on actual crossover bars
+        Uses PURE OHLCV data (no Heikin Ashi conversion)
         """
         symbol = coin_data.get('symbol', '').upper()
         
         try:
-            # Fetch pure OHLCV data
+            # Fetch pure OHLCV data (NO Heikin Ashi)
             price_df, exchange_used = self.fetch_15m_ohlcv(symbol)
             if price_df is None:
                 return None
             
-            # Apply PRECISE CipherB detection
+            # Apply PRECISE CipherB detection directly on raw OHLCV
             signals_df = detect_precise_cipherb_signals(price_df, self.config['cipherb'])
             if signals_df.empty:
                 return None
@@ -175,7 +175,7 @@ class Fixed15mAnalyzer:
         print("🔧 FIXED 15M CIPHERB ANALYSIS")
         print("="*80)
         print(f"🕐 IST Time: {ist_current.strftime('%Y-%m-%d %H:%M:%S IST')}")
-        print(f"🎯 Precise Crossover Detection")
+        print(f"🎯 Precise Crossover Detection (Pure OHLCV)")
         print(f"📊 Batched Alerts (Single Message)")
         print(f"🔍 Coins to analyze: {len(self.market_data)}")
         
