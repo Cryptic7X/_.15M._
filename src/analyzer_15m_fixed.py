@@ -121,14 +121,13 @@ class Fixed15mAnalyzer:
             
             # Apply PRECISE CipherB detection directly on raw OHLCV
             signals_df = detect_precise_cipherb_signals(price_df, self.config['cipherb'])
-            if signals_df.empty:
-                return None
+            if len(signals_df) < 2:
+                return None  # Not enough bars to check latest closed
             
-            # Get latest bar
-            latest_signal = signals_df.iloc[-1]
-            signal_timestamp = signals_df.index[-1]
+            latest_signal = signals_df.iloc[-2]          # SECOND TO LAST = closed bar
+            signal_timestamp = signals_df.index[-2]
             
-            # Check for PRECISE BUY crossover
+            # Now continue logic for buy/sell signals **using only this just-closed bar**
             if latest_signal['buySignal']:
                 if self.deduplicator.is_crossover_allowed(symbol, 'BUY', signal_timestamp):
                     return {
@@ -144,7 +143,6 @@ class Fixed15mAnalyzer:
                         'coin_data': coin_data
                     }
             
-            # Check for PRECISE SELL crossover
             if latest_signal['sellSignal']:
                 if self.deduplicator.is_crossover_allowed(symbol, 'SELL', signal_timestamp):
                     return {
