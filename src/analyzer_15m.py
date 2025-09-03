@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 import os
 import sys
 import time
@@ -15,6 +14,13 @@ from alerts.telegram_high_risk import send_batched_alert
 from alerts.deduplication_15m import AlertDeduplicator
 from utils.heikin_ashi import heikin_ashi
 from indicators.cipherb_fixed import detect_cipherb_signals
+
+# ✅ Helper function ABOVE the class
+def get_ist_time():
+    """Get current IST time from UTC"""
+    utc_now = datetime.utcnow()
+    ist_time = utc_now + timedelta(hours=5, minutes=30)
+    return ist_time
 
 class CipherB15mAnalyzer:
     def __init__(self):
@@ -136,9 +142,9 @@ class CipherB15mAnalyzer:
             return None
 
     def run_analysis(self):
-        from datetime import datetime, timedelta
-        ist_time = datetime.utcnow() + timedelta(hours=5, minutes=30)
-        print(f"🔔 HIGH-RISK 15M ANALYSIS - {ist_time.strftime('%Y-%m-%d %H:%M:%S IST')}")
+        # ✅ Use the helper function here
+        ist_current = get_ist_time()
+        print(f"🔔 HIGH-RISK 15M ANALYSIS - {ist_current.strftime('%Y-%m-%d %H:%M:%S IST')}")
 
         
         if not self.market_data:
