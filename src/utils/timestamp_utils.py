@@ -4,6 +4,7 @@ FIXED Timestamp Utilities - Handles UTC/IST conversion properly
 
 # At top of timestamp_utils.py
 import datetime
+from datetime import timedelta
 import pytz
 
 IST = pytz.timezone('Asia/Kolkata')
