@@ -1,11 +1,5 @@
 #!/usr/bin/env python3
 """
-High-Risk 15-Minute CipherB Analysis Engine
-Real-time 15m Heikin-Ashi CipherB analysis with duplicate prevention
-"""
-
-#!/usr/bin/env python3
-"""
 Fixed High-Risk 15-Minute CipherB Analysis Engine
 Perfect timing with zero alignment issues
 """
@@ -23,7 +17,13 @@ current_dir = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, current_dir)
 
 from utils.heikin_ashi import heikin_ashi
-from utils.timestamp_utils import get_15m_candle_boundaries, format_ist_timestamp, should_run_analysis_now, get_current_analysis_candle
+from utils.timestamp_utils import (
+    get_15m_candle_boundaries, 
+    format_ist_timestamp, 
+    should_run_analysis_now, 
+    get_current_analysis_candle,
+    get_current_ist_time  # ← THIS WAS MISSING!
+)
 from indicators.cipherb_fixed import detect_cipherb_signals
 from alerts.deduplication_15m import HighRisk15mDeduplicator
 from alerts.telegram_high_risk import send_batched_high_risk_alert
@@ -197,6 +197,7 @@ class HighRisk15mAnalyzer:
         # Get the candle to analyze
         current_candle = get_current_analysis_candle()
         print(f"📊 Analyzing candle: {format_ist_timestamp(current_candle['candle_start_ist'], False)} - {format_ist_timestamp(current_candle['candle_close_ist'], False)}")
+        print(f"⏱️ Timeframe: {self.config['system']['timeframe'].upper()}")
         
         # Load market data
         coins = self.load_high_risk_market_data()
