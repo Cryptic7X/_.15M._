@@ -30,5 +30,5 @@ cipherb:
 
 scan:
   pages: 2
-  coins_per_page: 100
+  coins_per_page: 125
   candles_required: 200
