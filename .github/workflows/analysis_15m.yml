@@ -1,10 +1,11 @@
-name: High-Risk CipherB 15-minute Analysis
+name: High-Risk CipherB 15-minute Analysis - Offset Schedule
 
 on:
   schedule:
-    # Runs every 15 minutes exactly - simple and reliable
-    - cron: '*/15 * * * *'
-  workflow_dispatch:
+    # Option 2: Offset minutes to avoid GitHub's rush hours
+    # Runs at 3, 18, 33, 48 minutes past every hour
+    - cron: '3,18,33,48 * * * *'
+  workflow_dispatch:  # Allow manual triggers
 
 jobs:
   high_risk_analysis:
@@ -12,10 +13,10 @@ jobs:
     timeout-minutes: 12
 
     steps:
-      - name: Checkout code
+      - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Setup Python
+      - name: Setup Python Environment
         uses: actions/setup-python@v4
         with:
           python-version: '3.11'
@@ -34,12 +35,14 @@ jobs:
           # COINGECKO_API_KEY: ${{ secrets.COINGECKO_API_KEY }}
         run: python src/analyzer_15m.py
 
-      - name: Commit Alert Cache
+      - name: Commit Alert Cache Updates
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           if [ -f cache/alert_cache_15m.json ]; then
             git add cache/alert_cache_15m.json
-            git commit -m "Update 15m alert cache [skip ci]" || echo "No changes"
-            git push || echo "Push failed"
+            git commit -m "Update 15m alert cache [skip ci]" || echo "No changes to commit"
+            git push || echo "Push failed - continuing"
+          else
+            echo "No cache file to commit"
           fi
