@@ -2,40 +2,32 @@ name: 15-Minute CipherB Analysis
 
 on:
   schedule:
-    # Run 3 minutes after each 15m candle closes (avoiding popular :02, :17, :32, :47)
-    # IST candle closes: 7:00, 7:15, 7:30, 7:45 → Analysis: 7:03, 7:18, 7:33, 7:48
-    # UTC equivalent: 18:33, 18:48, 19:03, 19:18, 19:33, 19:48, etc.
-    - cron: '3,18,33,48 * * * *'  # Every hour at these minutes
+    - cron: '3,18,33,48 * * * *'  # Every 15 minutes (3 min after candle close)
   workflow_dispatch:
-    inputs:
-      debug:
-        description: 'Enable debug mode'
-        required: false
-        default: 'false'
 
 jobs:
   cipherb_analysis:
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    
+
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-      
-      - name: Setup Python 3.11
+
+      - name: Setup Python
         uses: actions/setup-python@v4
         with:
           python-version: '3.11'
           cache: 'pip'
-      
+
       - name: Install Dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
-      
-      - name: Run 15-Minute CipherB Analysis
+
+      - name: Run CipherB Analysis
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           HIGH_RISK_TELEGRAM_CHAT_ID: ${{ secrets.HIGH_RISK_TELEGRAM_CHAT_ID }}
@@ -43,30 +35,20 @@ jobs:
           BINGX_SECRET_KEY: ${{ secrets.BINGX_SECRET_KEY }}
           COINGECKO_API_KEY: ${{ secrets.COINGECKO_API_KEY }}
         run: |
-          echo "🔔 Starting 15m CipherB Analysis at $(date -u) UTC"
+          echo "🔔 Starting CipherB analysis at $(date -u)"
           python src/analyzer_15m.py
-      
+
       - name: Commit Alert Cache Updates
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          
           if [ -f cache/alert_cache_15m.json ]; then
             git add cache/alert_cache_15m.json
-            if git diff --staged --quiet; then
-              echo "No changes to commit"
-            else
-              git commit -m "🔄 Update 15m alert cache [skip ci]"
-              git push
-              echo "✅ Alert cache updated successfully"
-            fi
-          else
-            echo "⚠️ No alert cache file found"
+            git commit -m "🔄 Update 15m alert cache [skip ci]" || echo "No changes"
+            git push || echo "Push failed"
           fi
-      
+
       - name: Analysis Summary
-        if: always()
         run: |
-          echo "📊 15-Minute Analysis Complete"
-          echo "⏰ Completed at: $(date -u) UTC"
-          echo "🕐 IST Time: $(TZ='Asia/Kolkata' date)"
+          echo "✅ CipherB Analysis completed at $(date -u)"
+
