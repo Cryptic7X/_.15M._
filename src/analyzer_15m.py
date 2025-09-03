@@ -136,7 +136,10 @@ class CipherB15mAnalyzer:
             return None
 
     def run_analysis(self):
-        print(f"🔔 HIGH-RISK 15M ANALYSIS - {datetime.now().strftime('%Y-%m-%d %H:%M:%S IST')}")
+        from datetime import datetime, timedelta
+        ist_time = datetime.utcnow() + timedelta(hours=5, minutes=30)
+        print(f"🔔 HIGH-RISK 15M ANALYSIS - {ist_time.strftime('%Y-%m-%d %H:%M:%S IST')}")
+
         
         if not self.market_data:
             return
