@@ -19,24 +19,22 @@ class RobustMarketDataFetcher:
         self.session = self.create_robust_session()
 
     def create_robust_session(self):
-        """Create requests session with exponential backoff retry"""
+        """Create requests session with API key authentication"""
         session = requests.Session()
         
         # Configure retry strategy
         retry_strategy = Retry(
-            total=5,  # Max 5 retries
-            backoff_factor=2,  # 2, 4, 8, 16, 32 seconds
-            status_forcelist=[429, 500, 502, 503, 504],  # HTTP codes to retry
+            total=5,
+            backoff_factor=2,
+            status_forcelist=[429, 500, 502, 503, 504],
             allowed_methods=["HEAD", "GET", "OPTIONS"],
-            backoff_jitter=0.5  # Add randomness to avoid thundering herd
         )
         
-        # Mount adapter with retry strategy
         adapter = HTTPAdapter(max_retries=retry_strategy)
         session.mount("https://", adapter)
         session.mount("http://", adapter)
         
-        # Set headers
+        # Set headers with API key authentication
         session.headers.update({
             'User-Agent': 'CipherB-15m-System/1.0',
             'Accept': 'application/json',
@@ -44,14 +42,16 @@ class RobustMarketDataFetcher:
             'Connection': 'keep-alive'
         })
         
-        # Add API key if available
+        # Add CoinGecko Demo API key
         api_key = os.getenv('COINGECKO_API_KEY')
         if api_key:
-            session.headers['X-CoinGecko-Api-Key'] = api_key
-            print("✅ Using CoinGecko API Key")
+            session.headers['x-cg-demo-api-key'] = api_key  # ← This is the key fix!
+            print("✅ Using CoinGecko Demo API Key")
+            print(f"   API Key: {api_key[:8]}...{api_key[-4:]}")  # Show partial key
         else:
-            print("⚠️ No API Key - using public API (30 calls/min limit)")
-            
+            print("⚠️ No CoinGecko API Key found - using public limits")
+            print("   Set COINGECKO_API_KEY environment variable")
+        
         return session
 
     def load_blocked_coins(self):
@@ -84,56 +84,43 @@ class RobustMarketDataFetcher:
         return False
 
     def fetch_market_coins(self):
-        """Fetch coins with robust error handling"""
-        # **FIX: Use correct config path**
+        """Fetch coins using your Demo API key for higher limits"""
         base_url = self.config['apis']['coingecko']['base_url']
-        rate_limit_delay = self.config['apis']['coingecko']['rate_limit']
-        timeout = self.config['apis']['coingecko']['timeout']
-        
         coins = []
         
-        print(f"🚀 Starting CoinGecko API fetch...")
-        print(f"📡 Base URL: {base_url}")
-        print(f"⏱️ Rate limit delay: {rate_limit_delay}s")
-        print(f"🔄 Timeout: {timeout}s")
+        print(f"🚀 Starting CoinGecko API fetch with authentication...")
         
-        # Test API connectivity first
-        try:
-            ping_response = self.session.get(f"{base_url}/ping", timeout=30)
-            if ping_response.status_code == 200:
-                print("✅ CoinGecko API is responding")
-            else:
-                print(f"⚠️ API ping status: {ping_response.status_code}")
-        except Exception as e:
-            print(f"⚠️ API ping failed: {e}")
-
-        # Reduced limits for reliability
-        pages = min(self.config['scan']['pages'], 2)  # Max 2 pages
-        per_page = min(self.config['scan']['coins_per_page'], 100)  # Max 100 per page
+        # Use your configured values (not hard-coded limits!)
+        pages = self.config['scan']['pages']  # Should be 4
+        per_page = min(self.config['scan']['coins_per_page'], 250)  # Max 250 with Demo API
+        
+        print(f"📊 Target: {pages} pages × {per_page} coins = {pages * per_page} total coins")
         
         for page in range(1, pages + 1):
             params = {
                 'vs_currency': 'usd',
                 'order': 'market_cap_desc',
-                'per_page': per_page,
+                'per_page': per_page,  # Use your config value
                 'page': page,
                 'sparkline': 'false',
                 'price_change_percentage': '24h'
             }
             
-            print(f"\n📄 Fetching page {page}/{pages}")
+            print(f"\n📄 Fetching page {page}/{pages} (requesting {per_page} coins)")
             
             max_attempts = 3
             for attempt in range(max_attempts):
                 try:
                     url = f"{base_url}/coins/markets"
-                    print(f"🔄 Attempt {attempt + 1}/{max_attempts}")
-                    
-                    response = self.session.get(url, params=params, timeout=timeout)
+                    response = self.session.get(url, params=params, timeout=60)
                     
                     # Handle rate limiting
-                    if self.handle_rate_limit(response):
-                        continue  # Retry after waiting
+                    if response.status_code == 429:
+                        retry_after = response.headers.get('Retry-After', '60')
+                        wait_time = int(retry_after)
+                        print(f"⏳ Rate limited. Waiting {wait_time} seconds...")
+                        time.sleep(wait_time + 1)
+                        continue
                     
                     response.raise_for_status()
                     data = response.json()
@@ -144,24 +131,21 @@ class RobustMarketDataFetcher:
                         
                     coins.extend(data)
                     print(f"✅ Page {page}: {len(data)} coins fetched")
-                    break  # Success, exit retry loop
+                    break
                     
-                except requests.exceptions.RequestException as e:
+                except Exception as e:
                     print(f"❌ Attempt {attempt + 1} failed: {str(e)[:100]}")
                     if attempt == max_attempts - 1:
                         print(f"❌ All attempts failed for page {page}")
                         break
-                    
-                    # Wait before retry
-                    wait_time = min(60, (2 ** attempt) + random.uniform(0, 2))
-                    print(f"⏳ Waiting {wait_time:.1f}s before retry...")
-                    time.sleep(wait_time)
+                    time.sleep((2 ** attempt) + 1)
             
-            # Wait between pages to respect rate limits
+            # Rate limiting between pages
             if page < pages:
+                rate_limit_delay = self.config['apis']['coingecko']['rate_limit']
                 print(f"⏳ Waiting {rate_limit_delay}s before next page...")
                 time.sleep(rate_limit_delay)
-
+    
         print(f"\n📊 Total coins fetched: {len(coins)}")
         return coins
 
