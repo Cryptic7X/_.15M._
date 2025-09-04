@@ -73,5 +73,100 @@
     "alerted_at": "2025-09-04T13:00:48.871552",
     "signal_time": "2025-09-04T13:00:00",
     "freshness_seconds": 48.871552
+  },
+  "ENA_BUY_20250904_144500": {
+    "alerted_at": "2025-09-04T14:45:03.951763",
+    "signal_time": "2025-09-04T14:45:00",
+    "freshness_seconds": 3.951763
+  },
+  "ONDO_BUY_20250904_144500": {
+    "alerted_at": "2025-09-04T14:45:10.194421",
+    "signal_time": "2025-09-04T14:45:00",
+    "freshness_seconds": 10.194421
+  },
+  "ARB_BUY_20250904_144500": {
+    "alerted_at": "2025-09-04T14:45:12.053499",
+    "signal_time": "2025-09-04T14:45:00",
+    "freshness_seconds": 12.053499
+  },
+  "BONK_BUY_20250904_144500": {
+    "alerted_at": "2025-09-04T14:45:23.623462",
+    "signal_time": "2025-09-04T14:45:00",
+    "freshness_seconds": 23.623462
+  },
+  "OP_BUY_20250904_144500": {
+    "alerted_at": "2025-09-04T14:45:27.279841",
+    "signal_time": "2025-09-04T14:45:00",
+    "freshness_seconds": 27.279841
+  },
+  "TIA_BUY_20250904_144500": {
+    "alerted_at": "2025-09-04T14:45:28.508654",
+    "signal_time": "2025-09-04T14:45:00",
+    "freshness_seconds": 28.508654
+  },
+  "PENDLE_BUY_20250904_144500": {
+    "alerted_at": "2025-09-04T14:45:37.741349",
+    "signal_time": "2025-09-04T14:45:00",
+    "freshness_seconds": 37.741349
+  },
+  "ENS_BUY_20250904_144500": {
+    "alerted_at": "2025-09-04T14:45:40.271603",
+    "signal_time": "2025-09-04T14:45:00",
+    "freshness_seconds": 40.271603
+  },
+  "SAND_BUY_20250904_144500": {
+    "alerted_at": "2025-09-04T14:45:43.818497",
+    "signal_time": "2025-09-04T14:45:00",
+    "freshness_seconds": 43.818497
+  },
+  "APE_BUY_20250904_144500": {
+    "alerted_at": "2025-09-04T14:45:49.172451",
+    "signal_time": "2025-09-04T14:45:00",
+    "freshness_seconds": 49.172451
+  },
+  "AR_BUY_20250904_144500": {
+    "alerted_at": "2025-09-04T14:45:50.957721",
+    "signal_time": "2025-09-04T14:45:00",
+    "freshness_seconds": 50.957721
+  },
+  "POPCAT_BUY_20250904_144500": {
+    "alerted_at": "2025-09-04T14:46:00.181735",
+    "signal_time": "2025-09-04T14:45:00",
+    "freshness_seconds": 60.181735
+  },
+  "ARKM_BUY_20250904_144500": {
+    "alerted_at": "2025-09-04T14:46:03.713973",
+    "signal_time": "2025-09-04T14:45:00",
+    "freshness_seconds": 63.713973
+  },
+  "OM_BUY_20250904_144500": {
+    "alerted_at": "2025-09-04T14:46:05.068833",
+    "signal_time": "2025-09-04T14:45:00",
+    "freshness_seconds": 65.068833
+  },
+  "PNUT_BUY_20250904_144500": {
+    "alerted_at": "2025-09-04T14:46:06.294036",
+    "signal_time": "2025-09-04T14:45:00",
+    "freshness_seconds": 66.294036
+  },
+  "CAMP_BUY_20250904_144500": {
+    "alerted_at": "2025-09-04T14:46:11.678507",
+    "signal_time": "2025-09-04T14:45:00",
+    "freshness_seconds": 71.678507
+  },
+  "BOME_BUY_20250904_144500": {
+    "alerted_at": "2025-09-04T14:46:15.789397",
+    "signal_time": "2025-09-04T14:45:00",
+    "freshness_seconds": 75.789397
+  },
+  "MOODENG_BUY_20250904_144500": {
+    "alerted_at": "2025-09-04T14:46:17.058393",
+    "signal_time": "2025-09-04T14:45:00",
+    "freshness_seconds": 77.058393
+  },
+  "API3_BUY_20250904_144500": {
+    "alerted_at": "2025-09-04T14:46:17.627412",
+    "signal_time": "2025-09-04T14:45:00",
+    "freshness_seconds": 77.627412
   }
 }
