@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 """
-Fixed Professional 15m Analyzer
-- Precise crossover detection (no false signals)
-- Batched alerts (single consolidated message)  
-- NO Heikin Ashi - Pure OHLCV data only
+Fresh Signal 15m Analyzer
+Only alerts on signals that:
+1. Occurred in the most recent closed candle
+2. Are within 2-minute freshness window
+3. Match exact Pine Script alert conditions
 """
 
 import os
@@ -18,7 +19,7 @@ from datetime import datetime, timedelta
 sys.path.insert(0, os.path.dirname(__file__))
 
 from alerts.telegram_batch import send_consolidated_alert
-from alerts.deduplication_fixed import FixedDeduplicator
+from alerts.deduplication_fresh import FreshSignalDeduplicator
 from indicators.cipherb_exact import detect_exact_cipherb_signals
 
 def get_ist_time():
@@ -26,10 +27,10 @@ def get_ist_time():
     utc_now = datetime.utcnow()
     return utc_now + timedelta(hours=5, minutes=30)
 
-class Fixed15mAnalyzer:
+class Fresh15mAnalyzer:
     def __init__(self):
         self.config = self.load_config()
-        self.deduplicator = FixedDeduplicator()
+        self.deduplicator = FreshSignalDeduplicator(freshness_minutes=2)
         self.exchanges = self.init_exchanges()
         self.market_data = self.load_market_data()
 
@@ -53,7 +54,6 @@ class Fixed15mAnalyzer:
     def init_exchanges(self):
         exchanges = []
         
-        # BingX Primary
         try:
             bingx = ccxt.bingx({
                 'apiKey': os.getenv('BINGX_API_KEY', ''),
@@ -66,7 +66,6 @@ class Fixed15mAnalyzer:
         except Exception as e:
             print(f"⚠️ BingX failed: {e}")
         
-        # KuCoin Fallback
         try:
             kucoin = ccxt.kucoin({
                 'rateLimit': 500,
@@ -80,7 +79,7 @@ class Fixed15mAnalyzer:
         return exchanges
 
     def fetch_15m_ohlcv(self, symbol):
-        """Fetch PURE OHLCV data - NO Heikin Ashi conversion"""
+        """Fetch OHLCV data with timestamps"""
         
         for exchange_name, exchange in self.exchanges:
             try:
@@ -89,12 +88,14 @@ class Fixed15mAnalyzer:
                 if len(ohlcv) < 100:
                     continue
                 
-                # Pure DataFrame - Direct OHLCV data (NO Heikin Ashi!)
                 df = pd.DataFrame(ohlcv, columns=['timestamp', 'open', 'high', 'low', 'close', 'volume'])
                 df['timestamp'] = pd.to_datetime(df['timestamp'], unit='ms')
                 df.set_index('timestamp', inplace=True)
                 
-                # Convert to IST
+                # Keep UTC timestamps for freshness checking
+                df['utc_timestamp'] = df.index
+                
+                # Convert index to IST for display
                 df.index = df.index + pd.Timedelta(hours=5, minutes=30)
                 
                 if len(df) > 50 and df['close'].iloc[-1] > 0:
@@ -105,38 +106,42 @@ class Fixed15mAnalyzer:
         
         return None, None
 
-    def analyze_coin_precise(self, coin_data):
+    def analyze_coin_fresh_signals(self, coin_data):
+        """
+        Analyze for FRESH SIGNALS ONLY
+        Only checks the most recent closed candle
+        Only alerts if signal is within 2-minute freshness window
+        """
         symbol = coin_data.get('symbol', '').upper()
         
         try:
-            # Fetch pure OHLCV data
+            # Fetch data with timestamps
             price_df, exchange_used = self.fetch_15m_ohlcv(symbol)
             if price_df is None or len(price_df) < 50:
                 return None
             
-            # Apply EXACT CipherB detection (matches your Pine Script)
+            # Apply exact CipherB detection
             signals_df = detect_exact_cipherb_signals(price_df, self.config['cipherb'])
             if signals_df.empty:
                 return None
             
-            # Check only closed candles (second to last)
-            if len(signals_df) < 2:
-                return None
-                
-            latest_signal = signals_df.iloc[-2]  # CLOSED candle
-            signal_timestamp = signals_df.index[-2]
+            # CRITICAL: Only check the MOST RECENT CLOSED candle
+            # After 2-minute delay, [-1] is the most recent completed candle
+            latest_signal = signals_df.iloc[-1]
+            signal_timestamp_utc = price_df['utc_timestamp'].iloc[-1]
+            signal_timestamp_ist = signals_df.index[-1]
             
-            # Debug logging to compare with TradingView
-            if symbol == 'ETH':  # Debug specific coin
-                print(f"🔍 {symbol} Debug at {signal_timestamp.strftime('%H:%M')}:")
-                print(f"   WT1: {latest_signal['wt1']:.2f}")
-                print(f"   WT2: {latest_signal['wt2']:.2f}")
-                print(f"   Buy: {latest_signal['buySignal']}")
-                print(f"   Sell: {latest_signal['sellSignal']}")
+            # Debug output for verification
+            current_time = datetime.utcnow()
+            time_since_signal = current_time - signal_timestamp_utc.to_pydatetime()
             
-            # Check for EXACT Pine Script BUY signal
+            print(f"🔍 {symbol} - Signal age: {time_since_signal.total_seconds():.0f}s")
+            print(f"   Signal time (IST): {signal_timestamp_ist.strftime('%H:%M:%S')}")
+            print(f"   BUY: {latest_signal['buySignal']} | SELL: {latest_signal['sellSignal']}")
+            
+            # Check for FRESH BUY signal
             if latest_signal['buySignal']:
-                if self.deduplicator.is_crossover_allowed(symbol, 'BUY', signal_timestamp):
+                if self.deduplicator.is_signal_fresh_and_new(symbol, 'BUY', signal_timestamp_utc):
                     return {
                         'symbol': symbol,
                         'signal_type': 'BUY',
@@ -146,13 +151,14 @@ class Fixed15mAnalyzer:
                         'change_24h': coin_data.get('price_change_percentage_24h', 0),
                         'market_cap': coin_data.get('market_cap', 0),
                         'exchange': exchange_used,
-                        'timestamp': signal_timestamp,
+                        'timestamp': signal_timestamp_ist,
+                        'signal_age_seconds': time_since_signal.total_seconds(),
                         'coin_data': coin_data
                     }
             
-            # Check for EXACT Pine Script SELL signal
+            # Check for FRESH SELL signal
             if latest_signal['sellSignal']:
-                if self.deduplicator.is_crossover_allowed(symbol, 'SELL', signal_timestamp):
+                if self.deduplicator.is_signal_fresh_and_new(symbol, 'SELL', signal_timestamp_utc):
                     return {
                         'symbol': symbol,
                         'signal_type': 'SELL',
@@ -162,35 +168,40 @@ class Fixed15mAnalyzer:
                         'change_24h': coin_data.get('price_change_percentage_24h', 0),
                         'market_cap': coin_data.get('market_cap', 0),
                         'exchange': exchange_used,
-                        'timestamp': signal_timestamp,
+                        'timestamp': signal_timestamp_ist,
+                        'signal_age_seconds': time_since_signal.total_seconds(),
                         'coin_data': coin_data
                     }
             
             return None
             
         except Exception as e:
+            print(f"❌ {symbol} analysis failed: {str(e)[:100]}")
             return None
 
-    def run_fixed_analysis(self):
+    def run_fresh_analysis(self):
         """
-        Main analysis with BATCH collection and SINGLE alert
+        Run analysis for FRESH SIGNALS ONLY
         """
         ist_current = get_ist_time()
         
         print("="*80)
-        print("🔧 FIXED 15M CIPHERB ANALYSIS")
+        print("🎯 FRESH SIGNAL 15M ANALYSIS")
         print("="*80)
-        print(f"🕐 IST Time: {ist_current.strftime('%Y-%m-%d %H:%M:%S IST')}")
-        print(f"🎯 Precise Crossover Detection (Pure OHLCV)")
-        print(f"📊 Batched Alerts (Single Message)")
+        print(f"🕐 Analysis Time: {ist_current.strftime('%Y-%m-%d %H:%M:%S IST')}")
+        print(f"✅ Only fresh signals (within 2 minutes)")
+        print(f"🚫 Blocks duplicate & stale signals")
         print(f"🔍 Coins to analyze: {len(self.market_data)}")
         
         if not self.market_data:
             print("❌ No market data available")
             return
         
-        # COLLECT ALL SIGNALS (Don't send individually)
-        all_detected_signals = []
+        # Clean up old signal records first
+        self.deduplicator.cleanup_old_signals()
+        
+        # Collect FRESH signals only
+        fresh_signals = []
         batch_size = 20
         total_analyzed = 0
         
@@ -202,32 +213,37 @@ class Fixed15mAnalyzer:
             print(f"\n🔄 Processing batch {batch_num}/{total_batches}")
             
             for coin in batch:
-                signal_result = self.analyze_coin_precise(coin)
+                signal_result = self.analyze_coin_fresh_signals(coin)
                 if signal_result:
-                    all_detected_signals.append(signal_result)
-                    print(f"🚨 {signal_result['signal_type']}: {signal_result['symbol']}")
+                    fresh_signals.append(signal_result)
+                    age_s = signal_result['signal_age_seconds']
+                    print(f"🚨 {signal_result['signal_type']}: {signal_result['symbol']} ({age_s:.0f}s ago)")
                 
                 total_analyzed += 1
                 time.sleep(0.3)  # Rate limiting
         
-        # SEND SINGLE CONSOLIDATED ALERT with ALL signals
-        if all_detected_signals:
-            success = send_consolidated_alert(all_detected_signals)
+        # Send consolidated alert with FRESH signals only
+        if fresh_signals:
+            success = send_consolidated_alert(fresh_signals)
             if success:
-                print(f"\n✅ SENT 1 CONSOLIDATED ALERT with {len(all_detected_signals)} signals")
+                avg_age = sum(s['signal_age_seconds'] for s in fresh_signals) / len(fresh_signals)
+                print(f"\n✅ SENT 1 FRESH SIGNAL ALERT")
+                print(f"   Signals: {len(fresh_signals)}")
+                print(f"   Average age: {avg_age:.0f} seconds")
             else:
-                print(f"\n❌ Failed to send consolidated alert")
+                print(f"\n❌ Failed to send fresh signal alert")
         else:
-            print(f"\n📊 No crossover signals detected in this run")
+            print(f"\n📊 No fresh signals detected (all were stale or duplicate)")
         
         print(f"\n" + "="*80)
-        print("🔧 FIXED ANALYSIS COMPLETE")
+        print("🎯 FRESH SIGNAL ANALYSIS COMPLETE")
         print("="*80)
-        print(f"🎯 Total coins analyzed: {total_analyzed}")
-        print(f"🚨 Precise signals found: {len(all_detected_signals)}")
-        print(f"📱 Telegram messages sent: {'1' if all_detected_signals else '0'}")
+        print(f"📊 Total analyzed: {total_analyzed}")
+        print(f"🚨 Fresh signals: {len(fresh_signals)}")
+        print(f"📱 Alert sent: {'Yes' if fresh_signals else 'No'}")
+        print(f"⚡ Only fresh signals from last 2 minutes!")
         print("="*80)
 
 if __name__ == '__main__':
-    analyzer = Fixed15mAnalyzer()
-    analyzer.run_fixed_analysis()
+    analyzer = Fresh15mAnalyzer()
+    analyzer.run_fresh_analysis()
