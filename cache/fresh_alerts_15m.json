@@ -168,5 +168,60 @@
     "alerted_at": "2025-09-04T14:46:17.627412",
     "signal_time": "2025-09-04T14:45:00",
     "freshness_seconds": 77.627412
+  },
+  "BTC_BUY_20250904_153000": {
+    "alerted_at": "2025-09-04T15:30:48.421724",
+    "signal_time": "2025-09-04T15:30:00",
+    "freshness_seconds": 48.421724
+  },
+  "ADA_BUY_20250904_153000": {
+    "alerted_at": "2025-09-04T15:30:54.270909",
+    "signal_time": "2025-09-04T15:30:00",
+    "freshness_seconds": 54.270909
+  },
+  "HYPE_BUY_20250904_153000": {
+    "alerted_at": "2025-09-04T15:31:13.033601",
+    "signal_time": "2025-09-04T15:30:00",
+    "freshness_seconds": 73.033601
+  },
+  "HBAR_BUY_20250904_153000": {
+    "alerted_at": "2025-09-04T15:31:17.876670",
+    "signal_time": "2025-09-04T15:30:00",
+    "freshness_seconds": 77.87667
+  },
+  "SHIB_BUY_20250904_153000": {
+    "alerted_at": "2025-09-04T15:31:19.810451",
+    "signal_time": "2025-09-04T15:30:00",
+    "freshness_seconds": 79.810451
+  },
+  "ENA_BUY_20250904_153000": {
+    "alerted_at": "2025-09-04T15:31:25.842990",
+    "signal_time": "2025-09-04T15:30:00",
+    "freshness_seconds": 85.84299
+  },
+  "ARB_BUY_20250904_153000": {
+    "alerted_at": "2025-09-04T15:31:34.018795",
+    "signal_time": "2025-09-04T15:30:00",
+    "freshness_seconds": 94.018795
+  },
+  "KAS_BUY_20250904_153000": {
+    "alerted_at": "2025-09-04T15:31:35.777844",
+    "signal_time": "2025-09-04T15:30:00",
+    "freshness_seconds": 95.777844
+  },
+  "M_SELL_20250904_153000": {
+    "alerted_at": "2025-09-04T15:31:36.390944",
+    "signal_time": "2025-09-04T15:30:00",
+    "freshness_seconds": 96.390944
+  },
+  "S_BUY_20250904_153000": {
+    "alerted_at": "2025-09-04T15:31:54.254557",
+    "signal_time": "2025-09-04T15:30:00",
+    "freshness_seconds": 114.254557
+  },
+  "FLOKI_BUY_20250904_153000": {
+    "alerted_at": "2025-09-04T15:31:57.299449",
+    "signal_time": "2025-09-04T15:30:00",
+    "freshness_seconds": 117.299449
   }
 }
