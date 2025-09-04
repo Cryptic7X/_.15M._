@@ -1,45 +1,46 @@
-name: Fixed 15m CipherB Analysis
+# .github/workflows/precise_15m.yml
+name: Precise 15m Analysis (Schedule Delay)
 
 on:
   schedule:
-    # Simple 15-minute schedule
-    - cron: '*/15 * * * *'
+    # Run 2 minutes after each 15m boundary (off-peak timing)
+    - cron: '2,17,32,47 * * * *'
   workflow_dispatch:
 
 jobs:
-  fixed_analysis:
+  precise_analysis:
     runs-on: ubuntu-latest
-    timeout-minutes: 12
+    timeout-minutes: 8  # Shorter timeout since no built-in delays
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
-      - name: Setup Python
+        
+      - name: Setup Python  
         uses: actions/setup-python@v4
         with:
           python-version: '3.11'
-
+          
       - name: Install Dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Run Fixed 15m Analysis
+      - name: Run Precise Analysis
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           HIGH_RISK_TELEGRAM_CHAT_ID: ${{ secrets.HIGH_RISK_TELEGRAM_CHAT_ID }}
           BINGX_API_KEY: ${{ secrets.BINGX_API_KEY }}
           BINGX_SECRET_KEY: ${{ secrets.BINGX_SECRET_KEY }}
-          COINGECKO_API_KEY: ${{ secrets.COINGECKO_API_KEY }}
-        run: python src/analyzer_15m_fixed.py
+          # COINGECKO_API_KEY: ${{ secrets.COINGECKO_API_KEY }}
+        run: python src/analyzer_15m_precise.py
 
-      - name: Commit Cache Updates
+      - name: Commit Cache
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          if [ -f cache/crossover_alerts_15m.json ]; then
-            git add cache/crossover_alerts_15m.json
-            git commit -m "Update crossover cache [skip ci]" || echo "No changes"
+          if [ -f cache/precise_alerts_15m.json ]; then
+            git add cache/precise_alerts_15m.json
+            git commit -m "Update precise cache [skip ci]" || echo "No changes"
             git push || echo "Push failed"
           fi
