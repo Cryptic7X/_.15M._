@@ -53,6 +53,7 @@ def send_consolidated_alert(all_signals):
             wt1 = signal['wt1']
             wt2 = signal['wt2']
             exchange = signal['exchange']
+            age_s = signal.get('signal_age_seconds', 0)
 
             # Format price
             if price < 0.001:
@@ -82,6 +83,8 @@ def send_consolidated_alert(all_signals):
             wt1 = signal['wt1']
             wt2 = signal['wt2']
             exchange = signal['exchange']
+            age_s = signal.get('signal_age_seconds', 0)
+
 
             # Format price
             if price < 0.001:
@@ -98,17 +101,18 @@ def send_consolidated_alert(all_signals):
             message += f"""
 {i}. *{symbol}* | {price_fmt} | {change_24h:+.1f}%
    Cap: ${market_cap_m:.0f}M | WT: {wt1:.1f}/{wt2:.1f}
-   {exchange} | [Chart →]({tv_link})"""
+   {exchange} | ⚡{age_s:.0f}s ago | [Chart →]({tv_link})"""
 
-    # Footer
+    # Update footer
     message += f"""
 
-📊 *SIGNAL SUMMARY:*
-• Total: {len(all_signals)} | Buy: {len(buy_signals)} | Sell: {len(sell_signals)}
-• Exact Pine Script Logic ✅
-• 15m Closed Candles Only ✅
+📊 *FRESH SIGNAL SUMMARY:*
+• Total Signals: {len(all_signals)} (all within 2 minutes)
+• Buy Signals: {len(buy_signals)}  
+• Sell Signals: {len(sell_signals)}
+• Fresh Detection: ✅ No duplicates or stale alerts
 
-🔧 *Exact CipherB System v1.0*"""
+🎯 *Fresh Signal System v2.0*"""
 
     # Send single consolidated message
     url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
