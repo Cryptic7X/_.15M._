@@ -19,7 +19,16 @@ WBNB
 WMATIC
 WAVAX
 WFTM
+BETH
+STETH
+RETH
+CBETH
 
+# Bridge tokens
+ANYETH
+ANYUSDC
+CEUSDC
+HBTC
 
 # Problematic/Low Volume
 LUNA
