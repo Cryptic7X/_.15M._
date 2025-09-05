@@ -1,10 +1,9 @@
 #!/usr/bin/env python3
 """
-Fresh Signal 15m Analyzer
-Only alerts on signals that:
-1. Occurred in the most recent closed candle
-2. Are within 2-minute freshness window
-3. Match exact Pine Script alert conditions
+Fresh Signal 15m Analyzer with Blocked Coins Support
+- Only alerts on fresh signals (within 2 minutes)
+- Skips coins in blocked_coins.txt file
+- Prevents analysis of unwanted coins
 """
 
 import os
@@ -32,7 +31,36 @@ class Fresh15mAnalyzer:
         self.config = self.load_config()
         self.deduplicator = FreshSignalDeduplicator(freshness_minutes=2)
         self.exchanges = self.init_exchanges()
+        self.blocked_coins = self.load_blocked_coins()  # ← NEW: Load blocked coins
         self.market_data = self.load_market_data()
+
+    def load_blocked_coins(self):
+        """
+        Load blocked coins from blocked_coins.txt
+        Returns set of uppercase coin symbols to block
+        """
+        blocked_file = os.path.join(os.path.dirname(__file__), '..', 'config', 'blocked_coins.txt')
+        blocked_coins = set()
+        
+        try:
+            with open(blocked_file, 'r') as f:
+                for line in f:
+                    coin = line.strip().upper()
+                    if coin and not coin.startswith('#'):  # Skip empty lines and comments
+                        blocked_coins.add(coin)
+            
+            print(f"🚫 Loaded {len(blocked_coins)} blocked coins")
+            if blocked_coins:
+                print(f"   Blocked: {', '.join(sorted(list(blocked_coins)[:10]))}")
+                if len(blocked_coins) > 10:
+                    print(f"   ... and {len(blocked_coins) - 10} more")
+            
+        except FileNotFoundError:
+            print("📝 No blocked_coins.txt found - analyzing all coins")
+        except Exception as e:
+            print(f"⚠️ Error loading blocked coins: {e}")
+        
+        return blocked_coins
 
     def load_config(self):
         config_path = os.path.join(os.path.dirname(__file__), '..', 'config', 'config.yaml')
@@ -40,6 +68,7 @@ class Fresh15mAnalyzer:
             return yaml.safe_load(f)
 
     def load_market_data(self):
+        """Load market data and filter out blocked coins"""
         cache_file = os.path.join(os.path.dirname(__file__), '..', 'cache', 'high_risk_market_data.json')
         
         if not os.path.exists(cache_file):
@@ -49,7 +78,24 @@ class Fresh15mAnalyzer:
         with open(cache_file) as f:
             data = json.load(f)
         
-        return data.get('coins', [])
+        all_coins = data.get('coins', [])
+        
+        # Filter out blocked coins
+        filtered_coins = []
+        blocked_count = 0
+        
+        for coin in all_coins:
+            symbol = coin.get('symbol', '').upper()
+            
+            if symbol in self.blocked_coins:
+                blocked_count += 1
+                print(f"🚫 Blocking: {symbol}")
+                continue
+            
+            filtered_coins.append(coin)
+        
+        print(f"📊 Market data: {len(all_coins)} total, {blocked_count} blocked, {len(filtered_coins)} to analyze")
+        return filtered_coins
 
     def init_exchanges(self):
         exchanges = []
@@ -77,6 +123,10 @@ class Fresh15mAnalyzer:
             print(f"⚠️ KuCoin failed: {e}")
         
         return exchanges
+
+    def is_coin_blocked(self, symbol):
+        """Check if coin is in blocked list"""
+        return symbol.upper() in self.blocked_coins
 
     def fetch_15m_ohlcv(self, symbol):
         """Fetch OHLCV data with timestamps"""
@@ -109,10 +159,14 @@ class Fresh15mAnalyzer:
     def analyze_coin_fresh_signals(self, coin_data):
         """
         Analyze for FRESH SIGNALS ONLY
-        Only checks the most recent closed candle
-        Only alerts if signal is within 2-minute freshness window
+        Includes additional blocked coin check for safety
         """
         symbol = coin_data.get('symbol', '').upper()
+        
+        # Double-check blocked coins (should already be filtered)
+        if self.is_coin_blocked(symbol):
+            print(f"🚫 Skipping blocked coin: {symbol}")
+            return None
         
         try:
             # Fetch data with timestamps
@@ -125,8 +179,7 @@ class Fresh15mAnalyzer:
             if signals_df.empty:
                 return None
             
-            # CRITICAL: Only check the MOST RECENT CLOSED candle
-            # After 2-minute delay, [-1] is the most recent completed candle
+            # Only check the MOST RECENT CLOSED candle
             latest_signal = signals_df.iloc[-1]
             signal_timestamp_utc = price_df['utc_timestamp'].iloc[-1]
             signal_timestamp_ist = signals_df.index[-1]
@@ -182,25 +235,26 @@ class Fresh15mAnalyzer:
     def run_fresh_analysis(self):
         """
         Run analysis for FRESH SIGNALS ONLY
+        Now includes blocked coins filtering
         """
         ist_current = get_ist_time()
         
         print("="*80)
-        print("🎯 FRESH SIGNAL 15M ANALYSIS")
+        print("🎯 FRESH SIGNAL 15M ANALYSIS (WITH BLOCKED COINS)")
         print("="*80)
         print(f"🕐 Analysis Time: {ist_current.strftime('%Y-%m-%d %H:%M:%S IST')}")
         print(f"✅ Only fresh signals (within 2 minutes)")
-        print(f"🚫 Blocks duplicate & stale signals")
-        print(f"🔍 Coins to analyze: {len(self.market_data)}")
+        print(f"🚫 Blocks duplicate & stale signals + blocked coins")
+        print(f"🔍 Coins to analyze: {len(self.market_data)} (after blocking)")
         
         if not self.market_data:
-            print("❌ No market data available")
+            print("❌ No market data available (all coins may be blocked)")
             return
         
         # Clean up old signal records first
         self.deduplicator.cleanup_old_signals()
         
-        # Collect FRESH signals only
+        # Collect FRESH signals only (blocked coins already filtered)
         fresh_signals = []
         batch_size = 20
         total_analyzed = 0
@@ -233,15 +287,15 @@ class Fresh15mAnalyzer:
             else:
                 print(f"\n❌ Failed to send fresh signal alert")
         else:
-            print(f"\n📊 No fresh signals detected (all were stale or duplicate)")
+            print(f"\n📊 No fresh signals detected")
         
         print(f"\n" + "="*80)
         print("🎯 FRESH SIGNAL ANALYSIS COMPLETE")
         print("="*80)
         print(f"📊 Total analyzed: {total_analyzed}")
         print(f"🚨 Fresh signals: {len(fresh_signals)}")
+        print(f"🚫 Blocked coins: {len(self.blocked_coins)}")
         print(f"📱 Alert sent: {'Yes' if fresh_signals else 'No'}")
-        print(f"⚡ Only fresh signals from last 2 minutes!")
         print("="*80)
 
 if __name__ == '__main__':
