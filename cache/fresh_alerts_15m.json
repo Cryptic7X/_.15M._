@@ -283,5 +283,15 @@
     "alerted_at": "2025-09-05T08:16:51.002045",
     "signal_time": "2025-09-05T08:15:00",
     "freshness_seconds": 111.002045
+  },
+  "MANA_SELL_20250905_093000": {
+    "alerted_at": "2025-09-05T09:31:02.306946",
+    "signal_time": "2025-09-05T09:30:00",
+    "freshness_seconds": 62.306946
+  },
+  "LPT_SELL_20250905_093000": {
+    "alerted_at": "2025-09-05T09:31:11.572664",
+    "signal_time": "2025-09-05T09:30:00",
+    "freshness_seconds": 71.572664
   }
 }
