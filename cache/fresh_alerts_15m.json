@@ -258,5 +258,30 @@
     "alerted_at": "2025-09-05T05:31:41.263228",
     "signal_time": "2025-09-05T05:30:00",
     "freshness_seconds": 101.263228
+  },
+  "ETH_SELL_20250905_081500": {
+    "alerted_at": "2025-09-05T08:16:46.722594",
+    "signal_time": "2025-09-05T08:15:00",
+    "freshness_seconds": 106.722594
+  },
+  "XRP_SELL_20250905_081500": {
+    "alerted_at": "2025-09-05T08:16:47.250044",
+    "signal_time": "2025-09-05T08:15:00",
+    "freshness_seconds": 107.250044
+  },
+  "STETH_SELL_20250905_081500": {
+    "alerted_at": "2025-09-05T08:16:49.430813",
+    "signal_time": "2025-09-05T08:15:00",
+    "freshness_seconds": 109.430813
+  },
+  "TRX_SELL_20250905_081500": {
+    "alerted_at": "2025-09-05T08:16:50.470663",
+    "signal_time": "2025-09-05T08:15:00",
+    "freshness_seconds": 110.470663
+  },
+  "ADA_SELL_20250905_081500": {
+    "alerted_at": "2025-09-05T08:16:51.002045",
+    "signal_time": "2025-09-05T08:15:00",
+    "freshness_seconds": 111.002045
   }
 }
