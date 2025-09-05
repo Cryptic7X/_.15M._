@@ -188,5 +188,15 @@
     "alerted_at": "2025-09-05T10:15:08.258936",
     "signal_time": "2025-09-05T10:15:00",
     "freshness_seconds": 8.258936
+  },
+  "MEME_BUY_20250905_151500": {
+    "alerted_at": "2025-09-05T15:15:27.804256",
+    "signal_time": "2025-09-05T15:15:00",
+    "freshness_seconds": 27.804256
+  },
+  "NMR_BUY_20250905_151500": {
+    "alerted_at": "2025-09-05T15:15:33.276677",
+    "signal_time": "2025-09-05T15:15:00",
+    "freshness_seconds": 33.276677
   }
 }
