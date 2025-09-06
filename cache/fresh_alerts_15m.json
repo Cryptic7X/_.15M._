@@ -1283,5 +1283,15 @@
     "alerted_at": "2025-09-06T23:22:50.741864",
     "signal_time": "2025-09-06T23:00:00",
     "freshness_seconds": 1370.741864
+  },
+  "FTN_SELL_20250906_233000": {
+    "alerted_at": "2025-09-06T23:41:27.700676",
+    "signal_time": "2025-09-06T23:30:00",
+    "freshness_seconds": 687.700676
+  },
+  "SOMI_SELL_20250906_233000": {
+    "alerted_at": "2025-09-06T23:42:18.931561",
+    "signal_time": "2025-09-06T23:30:00",
+    "freshness_seconds": 738.931561
   }
 }
