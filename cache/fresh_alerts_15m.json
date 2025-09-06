@@ -358,5 +358,15 @@
     "alerted_at": "2025-09-06T06:51:06.913871",
     "signal_time": "2025-09-06T06:45:00",
     "freshness_seconds": 366.913871
+  },
+  "APE_BUY_20250906_070000": {
+    "alerted_at": "2025-09-06T07:12:18.476122",
+    "signal_time": "2025-09-06T07:00:00",
+    "freshness_seconds": 738.476122
+  },
+  "COMP_BUY_20250906_070000": {
+    "alerted_at": "2025-09-06T07:12:22.354618",
+    "signal_time": "2025-09-06T07:00:00",
+    "freshness_seconds": 742.354618
   }
 }
