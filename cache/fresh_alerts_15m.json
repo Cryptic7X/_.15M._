@@ -1263,5 +1263,25 @@
     "alerted_at": "2025-09-06T22:42:15.573018",
     "signal_time": "2025-09-06T22:30:00",
     "freshness_seconds": 735.573018
+  },
+  "ZEC_SELL_20250906_230000": {
+    "alerted_at": "2025-09-06T23:22:32.056965",
+    "signal_time": "2025-09-06T23:00:00",
+    "freshness_seconds": 1352.056965
+  },
+  "NFT_BUY_20250906_230000": {
+    "alerted_at": "2025-09-06T23:22:37.572775",
+    "signal_time": "2025-09-06T23:00:00",
+    "freshness_seconds": 1357.572775
+  },
+  "SUN_BUY_20250906_230000": {
+    "alerted_at": "2025-09-06T23:22:41.588046",
+    "signal_time": "2025-09-06T23:00:00",
+    "freshness_seconds": 1361.588046
+  },
+  "ZORA_SELL_20250906_230000": {
+    "alerted_at": "2025-09-06T23:22:50.741864",
+    "signal_time": "2025-09-06T23:00:00",
+    "freshness_seconds": 1370.741864
   }
 }
