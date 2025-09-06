@@ -868,5 +868,15 @@
     "alerted_at": "2025-09-06T11:48:20.779387",
     "signal_time": "2025-09-06T11:45:00",
     "freshness_seconds": 200.779387
+  },
+  "BNB_SELL_20250906_124500": {
+    "alerted_at": "2025-09-06T12:54:43.883112",
+    "signal_time": "2025-09-06T12:45:00",
+    "freshness_seconds": 583.883112
+  },
+  "TON_BUY_20250906_124500": {
+    "alerted_at": "2025-09-06T12:55:08.680950",
+    "signal_time": "2025-09-06T12:45:00",
+    "freshness_seconds": 608.68095
   }
 }
