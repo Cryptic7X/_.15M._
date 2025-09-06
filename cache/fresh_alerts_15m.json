@@ -598,5 +598,45 @@
     "alerted_at": "2025-09-06T09:49:54.955389",
     "signal_time": "2025-09-06T09:45:00",
     "freshness_seconds": 294.955389
+  },
+  "OKB_SELL_20250906_100000": {
+    "alerted_at": "2025-09-06T10:11:52.251130",
+    "signal_time": "2025-09-06T10:00:00",
+    "freshness_seconds": 712.25113
+  },
+  "WLD_BUY_20250906_100000": {
+    "alerted_at": "2025-09-06T10:12:05.364990",
+    "signal_time": "2025-09-06T10:00:00",
+    "freshness_seconds": 725.36499
+  },
+  "AERO_BUY_20250906_100000": {
+    "alerted_at": "2025-09-06T10:12:14.568997",
+    "signal_time": "2025-09-06T10:00:00",
+    "freshness_seconds": 734.568997
+  },
+  "LDO_BUY_20250906_100000": {
+    "alerted_at": "2025-09-06T10:12:15.736368",
+    "signal_time": "2025-09-06T10:00:00",
+    "freshness_seconds": 735.736368
+  },
+  "ZEC_SELL_20250906_100000": {
+    "alerted_at": "2025-09-06T10:12:28.053328",
+    "signal_time": "2025-09-06T10:00:00",
+    "freshness_seconds": 748.053328
+  },
+  "ETHFI_BUY_20250906_100000": {
+    "alerted_at": "2025-09-06T10:12:31.541909",
+    "signal_time": "2025-09-06T10:00:00",
+    "freshness_seconds": 751.541909
+  },
+  "SUPER_BUY_20250906_100000": {
+    "alerted_at": "2025-09-06T10:12:39.986069",
+    "signal_time": "2025-09-06T10:00:00",
+    "freshness_seconds": 759.986069
+  },
+  "SUSHI_BUY_20250906_100000": {
+    "alerted_at": "2025-09-06T10:12:58.137200",
+    "signal_time": "2025-09-06T10:00:00",
+    "freshness_seconds": 778.1372
   }
 }
