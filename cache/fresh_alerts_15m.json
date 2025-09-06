@@ -403,5 +403,15 @@
     "alerted_at": "2025-09-06T08:49:59.011532",
     "signal_time": "2025-09-06T08:45:00",
     "freshness_seconds": 299.011532
+  },
+  "PUMP_SELL_20250906_090000": {
+    "alerted_at": "2025-09-06T09:12:10.784285",
+    "signal_time": "2025-09-06T09:00:00",
+    "freshness_seconds": 730.784285
+  },
+  "OMNI_SELL_20250906_090000": {
+    "alerted_at": "2025-09-06T09:13:05.081588",
+    "signal_time": "2025-09-06T09:00:00",
+    "freshness_seconds": 785.081588
   }
 }
