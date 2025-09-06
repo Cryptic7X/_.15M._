@@ -893,5 +893,25 @@
     "alerted_at": "2025-09-06T13:48:50.483456",
     "signal_time": "2025-09-06T13:45:00",
     "freshness_seconds": 230.483456
+  },
+  "TON_BUY_20250906_140000": {
+    "alerted_at": "2025-09-06T14:10:32.081265",
+    "signal_time": "2025-09-06T14:00:00",
+    "freshness_seconds": 632.081265
+  },
+  "PUMP_BUY_20250906_140000": {
+    "alerted_at": "2025-09-06T14:10:54.255363",
+    "signal_time": "2025-09-06T14:00:00",
+    "freshness_seconds": 654.255363
+  },
+  "A_BUY_20250906_140000": {
+    "alerted_at": "2025-09-06T14:11:09.135986",
+    "signal_time": "2025-09-06T14:00:00",
+    "freshness_seconds": 669.135986
+  },
+  "NMR_SELL_20250906_140000": {
+    "alerted_at": "2025-09-06T14:11:42.568518",
+    "signal_time": "2025-09-06T14:00:00",
+    "freshness_seconds": 702.568518
   }
 }
