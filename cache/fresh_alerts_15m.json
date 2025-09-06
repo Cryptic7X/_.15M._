@@ -1043,5 +1043,25 @@
     "alerted_at": "2025-09-06T17:10:45.325357",
     "signal_time": "2025-09-06T17:00:00",
     "freshness_seconds": 645.325357
+  },
+  "AVAX_SELL_20250906_173000": {
+    "alerted_at": "2025-09-06T17:34:07.237236",
+    "signal_time": "2025-09-06T17:30:00",
+    "freshness_seconds": 247.237236
+  },
+  "XDC_BUY_20250906_173000": {
+    "alerted_at": "2025-09-06T17:34:35.018543",
+    "signal_time": "2025-09-06T17:30:00",
+    "freshness_seconds": 275.018543
+  },
+  "PYTH_SELL_20250906_173000": {
+    "alerted_at": "2025-09-06T17:34:40.773665",
+    "signal_time": "2025-09-06T17:30:00",
+    "freshness_seconds": 280.773665
+  },
+  "KAITO_SELL_20250906_173000": {
+    "alerted_at": "2025-09-06T17:35:05.019407",
+    "signal_time": "2025-09-06T17:30:00",
+    "freshness_seconds": 305.019407
   }
 }
