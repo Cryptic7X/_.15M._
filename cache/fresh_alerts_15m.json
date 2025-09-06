@@ -998,5 +998,25 @@
     "alerted_at": "2025-09-06T16:14:32.168658",
     "signal_time": "2025-09-06T16:00:00",
     "freshness_seconds": 872.168658
+  },
+  "ETH_BUY_20250906_163000": {
+    "alerted_at": "2025-09-06T16:31:58.117028",
+    "signal_time": "2025-09-06T16:30:00",
+    "freshness_seconds": 118.117028
+  },
+  "SOL_BUY_20250906_163000": {
+    "alerted_at": "2025-09-06T16:31:59.773361",
+    "signal_time": "2025-09-06T16:30:00",
+    "freshness_seconds": 119.773361
+  },
+  "PUMP_BUY_20250906_163000": {
+    "alerted_at": "2025-09-06T16:32:44.607563",
+    "signal_time": "2025-09-06T16:30:00",
+    "freshness_seconds": 164.607563
+  },
+  "SYRUP_BUY_20250906_163000": {
+    "alerted_at": "2025-09-06T16:33:02.977312",
+    "signal_time": "2025-09-06T16:30:00",
+    "freshness_seconds": 182.977312
   }
 }
