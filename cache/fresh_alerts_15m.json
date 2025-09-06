@@ -373,5 +373,20 @@
     "alerted_at": "2025-09-06T07:26:02.383387",
     "signal_time": "2025-09-06T07:15:00",
     "freshness_seconds": 662.383387
+  },
+  "PENDLE_BUY_20250906_074500": {
+    "alerted_at": "2025-09-06T07:49:21.573322",
+    "signal_time": "2025-09-06T07:45:00",
+    "freshness_seconds": 261.573322
+  },
+  "STRK_BUY_20250906_074500": {
+    "alerted_at": "2025-09-06T07:49:31.470185",
+    "signal_time": "2025-09-06T07:45:00",
+    "freshness_seconds": 271.470185
+  },
+  "COMP_BUY_20250906_074500": {
+    "alerted_at": "2025-09-06T07:49:36.130705",
+    "signal_time": "2025-09-06T07:45:00",
+    "freshness_seconds": 276.130705
   }
 }
