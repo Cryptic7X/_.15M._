@@ -318,5 +318,30 @@
     "alerted_at": "2025-09-06T06:18:10.542473",
     "signal_time": "2025-09-06T06:15:00",
     "freshness_seconds": 190.542473
+  },
+  "PEPE_BUY_20250906_063000": {
+    "alerted_at": "2025-09-06T06:38:12.935308",
+    "signal_time": "2025-09-06T06:30:00",
+    "freshness_seconds": 492.935308
+  },
+  "ICP_BUY_20250906_063000": {
+    "alerted_at": "2025-09-06T06:38:20.741203",
+    "signal_time": "2025-09-06T06:30:00",
+    "freshness_seconds": 500.741203
+  },
+  "ATOM_BUY_20250906_063000": {
+    "alerted_at": "2025-09-06T06:38:22.454289",
+    "signal_time": "2025-09-06T06:30:00",
+    "freshness_seconds": 502.454289
+  },
+  "JTO_BUY_20250906_063000": {
+    "alerted_at": "2025-09-06T06:38:47.735476",
+    "signal_time": "2025-09-06T06:30:00",
+    "freshness_seconds": 527.735476
+  },
+  "AR_BUY_20250906_063000": {
+    "alerted_at": "2025-09-06T06:38:56.409775",
+    "signal_time": "2025-09-06T06:30:00",
+    "freshness_seconds": 536.409775
   }
 }
