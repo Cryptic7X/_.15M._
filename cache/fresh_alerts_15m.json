@@ -833,5 +833,20 @@
     "alerted_at": "2025-09-06T11:22:27.668674",
     "signal_time": "2025-09-06T11:15:00",
     "freshness_seconds": 447.668674
+  },
+  "FTN_BUY_20250906_113000": {
+    "alerted_at": "2025-09-06T11:35:10.003296",
+    "signal_time": "2025-09-06T11:30:00",
+    "freshness_seconds": 310.003296
+  },
+  "VIRTUAL_BUY_20250906_113000": {
+    "alerted_at": "2025-09-06T11:35:33.294377",
+    "signal_time": "2025-09-06T11:30:00",
+    "freshness_seconds": 333.294377
+  },
+  "MEME_SELL_20250906_113000": {
+    "alerted_at": "2025-09-06T11:36:07.185499",
+    "signal_time": "2025-09-06T11:30:00",
+    "freshness_seconds": 367.185499
   }
 }
