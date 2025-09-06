@@ -2,10 +2,21 @@ name: Delete old workflow runs
 on:
   workflow_dispatch:
     inputs:
-      dry_run:
-        description: 'Test mode - no actual deletions'
+      days:
+        description: 'Days-worth of runs to keep for each workflow'
+        required: true
+        default: '0'  # Set to 0 to rely on minimum_runs setting
+      minimum_runs:
+        description: 'Minimum runs to keep for each workflow'
+        required: true
+        default: '30'  # Keep 30 most recent runs
+      delete_workflow_pattern:
+        description: 'Name or filename of the workflow (if not set, all workflows are targeted)'
         required: false
-        default: 'true'  # Changed to true for safety
+      dry_run:
+        description: 'Logs simulated changes, no deletions are performed'
+        required: false
+        default: 'true'  # Start with dry run for safety
 
 jobs:
   del_runs:
@@ -19,6 +30,8 @@ jobs:
         with:
           token: ${{ github.token }}
           repository: ${{ github.repository }}
-          retain_days: 0
-          keep_minimum_runs: 0
+          retain_days: ${{ github.event.inputs.days }}
+          keep_minimum_runs: ${{ github.event.inputs.minimum_runs }}
+          delete_workflow_pattern: ${{ github.event.inputs.delete_workflow_pattern }}
           dry_run: ${{ github.event.inputs.dry_run }}
+
