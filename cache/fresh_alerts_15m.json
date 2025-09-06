@@ -928,5 +928,20 @@
     "alerted_at": "2025-09-06T14:28:41.077228",
     "signal_time": "2025-09-06T14:15:00",
     "freshness_seconds": 821.077228
+  },
+  "TRX_BUY_20250906_143000": {
+    "alerted_at": "2025-09-06T14:35:06.224614",
+    "signal_time": "2025-09-06T14:30:00",
+    "freshness_seconds": 306.224614
+  },
+  "CRV_SELL_20250906_143000": {
+    "alerted_at": "2025-09-06T14:35:57.458813",
+    "signal_time": "2025-09-06T14:30:00",
+    "freshness_seconds": 357.458813
+  },
+  "NFT_BUY_20250906_143000": {
+    "alerted_at": "2025-09-06T14:36:12.336164",
+    "signal_time": "2025-09-06T14:30:00",
+    "freshness_seconds": 372.336164
   }
 }
