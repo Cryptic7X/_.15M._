@@ -878,5 +878,10 @@
     "alerted_at": "2025-09-06T12:55:08.680950",
     "signal_time": "2025-09-06T12:45:00",
     "freshness_seconds": 608.68095
+  },
+  "USELESS_SELL_20250906_131500": {
+    "alerted_at": "2025-09-06T13:17:23.400812",
+    "signal_time": "2025-09-06T13:15:00",
+    "freshness_seconds": 143.400812
   }
 }
