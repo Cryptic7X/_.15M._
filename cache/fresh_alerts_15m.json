@@ -1158,5 +1158,60 @@
     "alerted_at": "2025-09-06T20:26:11.133702",
     "signal_time": "2025-09-06T20:00:00",
     "freshness_seconds": 1571.133702
+  },
+  "ETH_BUY_20250906_203000": {
+    "alerted_at": "2025-09-06T20:40:34.725101",
+    "signal_time": "2025-09-06T20:30:00",
+    "freshness_seconds": 634.725101
+  },
+  "ADA_BUY_20250906_203000": {
+    "alerted_at": "2025-09-06T20:40:38.309421",
+    "signal_time": "2025-09-06T20:30:00",
+    "freshness_seconds": 638.309421
+  },
+  "LINK_BUY_20250906_203000": {
+    "alerted_at": "2025-09-06T20:40:54.392975",
+    "signal_time": "2025-09-06T20:30:00",
+    "freshness_seconds": 654.392975
+  },
+  "SUI_BUY_20250906_203000": {
+    "alerted_at": "2025-09-06T20:40:57.977090",
+    "signal_time": "2025-09-06T20:30:00",
+    "freshness_seconds": 657.97709
+  },
+  "WLFI_SELL_20250906_203000": {
+    "alerted_at": "2025-09-06T20:41:05.496359",
+    "signal_time": "2025-09-06T20:30:00",
+    "freshness_seconds": 665.496359
+  },
+  "ALGO_BUY_20250906_203000": {
+    "alerted_at": "2025-09-06T20:41:19.616196",
+    "signal_time": "2025-09-06T20:30:00",
+    "freshness_seconds": 679.616196
+  },
+  "NFT_BUY_20250906_203000": {
+    "alerted_at": "2025-09-06T20:41:44.946936",
+    "signal_time": "2025-09-06T20:30:00",
+    "freshness_seconds": 704.946936
+  },
+  "BERA_BUY_20250906_203000": {
+    "alerted_at": "2025-09-06T20:41:52.699357",
+    "signal_time": "2025-09-06T20:30:00",
+    "freshness_seconds": 712.699357
+  },
+  "POPCAT_BUY_20250906_203000": {
+    "alerted_at": "2025-09-06T20:41:55.953145",
+    "signal_time": "2025-09-06T20:30:00",
+    "freshness_seconds": 715.953145
+  },
+  "CAMP_BUY_20250906_203000": {
+    "alerted_at": "2025-09-06T20:42:06.663075",
+    "signal_time": "2025-09-06T20:30:00",
+    "freshness_seconds": 726.663075
+  },
+  "SOMI_SELL_20250906_203000": {
+    "alerted_at": "2025-09-06T20:42:11.694203",
+    "signal_time": "2025-09-06T20:30:00",
+    "freshness_seconds": 731.694203
   }
 }
