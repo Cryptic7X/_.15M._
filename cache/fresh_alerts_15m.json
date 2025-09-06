@@ -343,5 +343,20 @@
     "alerted_at": "2025-09-06T06:38:56.409775",
     "signal_time": "2025-09-06T06:30:00",
     "freshness_seconds": 536.409775
+  },
+  "HYPE_BUY_20250906_064500": {
+    "alerted_at": "2025-09-06T06:50:12.381669",
+    "signal_time": "2025-09-06T06:45:00",
+    "freshness_seconds": 312.381669
+  },
+  "SHIB_BUY_20250906_064500": {
+    "alerted_at": "2025-09-06T06:50:19.196665",
+    "signal_time": "2025-09-06T06:45:00",
+    "freshness_seconds": 319.196665
+  },
+  "NFT_SELL_20250906_064500": {
+    "alerted_at": "2025-09-06T06:51:06.913871",
+    "signal_time": "2025-09-06T06:45:00",
+    "freshness_seconds": 366.913871
   }
 }
