@@ -913,5 +913,20 @@
     "alerted_at": "2025-09-06T14:11:42.568518",
     "signal_time": "2025-09-06T14:00:00",
     "freshness_seconds": 702.568518
+  },
+  "M_SELL_20250906_141500": {
+    "alerted_at": "2025-09-06T14:27:50.908266",
+    "signal_time": "2025-09-06T14:15:00",
+    "freshness_seconds": 770.908266
+  },
+  "SYRUP_BUY_20250906_141500": {
+    "alerted_at": "2025-09-06T14:28:21.835173",
+    "signal_time": "2025-09-06T14:15:00",
+    "freshness_seconds": 801.835173
+  },
+  "USELESS_SELL_20250906_141500": {
+    "alerted_at": "2025-09-06T14:28:41.077228",
+    "signal_time": "2025-09-06T14:15:00",
+    "freshness_seconds": 821.077228
   }
 }
