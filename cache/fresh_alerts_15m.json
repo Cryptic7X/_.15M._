@@ -1113,5 +1113,30 @@
     "alerted_at": "2025-09-06T19:18:55.586642",
     "signal_time": "2025-09-06T19:00:00",
     "freshness_seconds": 1135.586642
+  },
+  "HYPE_BUY_20250906_193000": {
+    "alerted_at": "2025-09-06T19:40:27.057548",
+    "signal_time": "2025-09-06T19:30:00",
+    "freshness_seconds": 627.057548
+  },
+  "LTC_SELL_20250906_193000": {
+    "alerted_at": "2025-09-06T19:40:31.418609",
+    "signal_time": "2025-09-06T19:30:00",
+    "freshness_seconds": 631.418609
+  },
+  "WLD_SELL_20250906_193000": {
+    "alerted_at": "2025-09-06T19:40:51.061208",
+    "signal_time": "2025-09-06T19:30:00",
+    "freshness_seconds": 651.061208
+  },
+  "PUMP_BUY_20250906_193000": {
+    "alerted_at": "2025-09-06T19:40:53.689288",
+    "signal_time": "2025-09-06T19:30:00",
+    "freshness_seconds": 653.689288
+  },
+  "KAITO_SELL_20250906_193000": {
+    "alerted_at": "2025-09-06T19:41:27.280378",
+    "signal_time": "2025-09-06T19:30:00",
+    "freshness_seconds": 687.280378
   }
 }
