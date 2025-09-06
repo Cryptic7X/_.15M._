@@ -1138,5 +1138,25 @@
     "alerted_at": "2025-09-06T19:41:27.280378",
     "signal_time": "2025-09-06T19:30:00",
     "freshness_seconds": 687.280378
+  },
+  "HYPE_BUY_20250906_200000": {
+    "alerted_at": "2025-09-06T20:25:14.768071",
+    "signal_time": "2025-09-06T20:00:00",
+    "freshness_seconds": 1514.768071
+  },
+  "RAY_BUY_20250906_200000": {
+    "alerted_at": "2025-09-06T20:25:49.838092",
+    "signal_time": "2025-09-06T20:00:00",
+    "freshness_seconds": 1549.838092
+  },
+  "WAL_BUY_20250906_200000": {
+    "alerted_at": "2025-09-06T20:25:57.399420",
+    "signal_time": "2025-09-06T20:00:00",
+    "freshness_seconds": 1557.39942
+  },
+  "KAITO_SELL_20250906_200000": {
+    "alerted_at": "2025-09-06T20:26:11.133702",
+    "signal_time": "2025-09-06T20:00:00",
+    "freshness_seconds": 1571.133702
   }
 }
