@@ -193,5 +193,65 @@
     "alerted_at": "2025-09-06T05:39:13.418326",
     "signal_time": "2025-09-06T05:30:00",
     "freshness_seconds": 553.418326
+  },
+  "DOGE_BUY_20250906_054500": {
+    "alerted_at": "2025-09-06T05:48:15.400570",
+    "signal_time": "2025-09-06T05:45:00",
+    "freshness_seconds": 195.40057
+  },
+  "HBAR_BUY_20250906_054500": {
+    "alerted_at": "2025-09-06T05:48:38.577674",
+    "signal_time": "2025-09-06T05:45:00",
+    "freshness_seconds": 218.577674
+  },
+  "LTC_BUY_20250906_054500": {
+    "alerted_at": "2025-09-06T05:48:39.722902",
+    "signal_time": "2025-09-06T05:45:00",
+    "freshness_seconds": 219.722902
+  },
+  "UNI_BUY_20250906_054500": {
+    "alerted_at": "2025-09-06T05:48:42.829126",
+    "signal_time": "2025-09-06T05:45:00",
+    "freshness_seconds": 222.829126
+  },
+  "VET_BUY_20250906_054500": {
+    "alerted_at": "2025-09-06T05:48:56.383196",
+    "signal_time": "2025-09-06T05:45:00",
+    "freshness_seconds": 236.383196
+  },
+  "FIL_BUY_20250906_054500": {
+    "alerted_at": "2025-09-06T05:49:02.533440",
+    "signal_time": "2025-09-06T05:45:00",
+    "freshness_seconds": 242.53344
+  },
+  "LDO_BUY_20250906_054500": {
+    "alerted_at": "2025-09-06T05:49:09.776390",
+    "signal_time": "2025-09-06T05:45:00",
+    "freshness_seconds": 249.77639
+  },
+  "FLOKI_BUY_20250906_054500": {
+    "alerted_at": "2025-09-06T05:49:13.306332",
+    "signal_time": "2025-09-06T05:45:00",
+    "freshness_seconds": 253.306332
+  },
+  "TURBO_BUY_20250906_054500": {
+    "alerted_at": "2025-09-06T05:49:37.872340",
+    "signal_time": "2025-09-06T05:45:00",
+    "freshness_seconds": 277.87234
+  },
+  "PNUT_BUY_20250906_054500": {
+    "alerted_at": "2025-09-06T05:49:44.540111",
+    "signal_time": "2025-09-06T05:45:00",
+    "freshness_seconds": 284.540111
+  },
+  "ORDI_BUY_20250906_054500": {
+    "alerted_at": "2025-09-06T05:49:46.859590",
+    "signal_time": "2025-09-06T05:45:00",
+    "freshness_seconds": 286.85959
+  },
+  "BOME_BUY_20250906_054500": {
+    "alerted_at": "2025-09-06T05:49:54.076510",
+    "signal_time": "2025-09-06T05:45:00",
+    "freshness_seconds": 294.07651
   }
 }
