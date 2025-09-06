@@ -948,5 +948,45 @@
     "alerted_at": "2025-09-06T14:49:53.892143",
     "signal_time": "2025-09-06T14:45:00",
     "freshness_seconds": 293.892143
+  },
+  "AVAX_SELL_20250906_150000": {
+    "alerted_at": "2025-09-06T15:11:18.446960",
+    "signal_time": "2025-09-06T15:00:00",
+    "freshness_seconds": 678.44696
+  },
+  "NEAR_SELL_20250906_150000": {
+    "alerted_at": "2025-09-06T15:11:31.261920",
+    "signal_time": "2025-09-06T15:00:00",
+    "freshness_seconds": 691.26192
+  },
+  "PENGU_SELL_20250906_150000": {
+    "alerted_at": "2025-09-06T15:11:42.036111",
+    "signal_time": "2025-09-06T15:00:00",
+    "freshness_seconds": 702.036111
+  },
+  "TRUMP_BUY_20250906_150000": {
+    "alerted_at": "2025-09-06T15:11:44.762257",
+    "signal_time": "2025-09-06T15:00:00",
+    "freshness_seconds": 704.762257
+  },
+  "LDO_SELL_20250906_150000": {
+    "alerted_at": "2025-09-06T15:11:51.641869",
+    "signal_time": "2025-09-06T15:00:00",
+    "freshness_seconds": 711.641869
+  },
+  "ZRO_SELL_20250906_150000": {
+    "alerted_at": "2025-09-06T15:12:24.905082",
+    "signal_time": "2025-09-06T15:00:00",
+    "freshness_seconds": 744.905082
+  },
+  "USELESS_SELL_20250906_150000": {
+    "alerted_at": "2025-09-06T15:12:25.472952",
+    "signal_time": "2025-09-06T15:00:00",
+    "freshness_seconds": 745.472952
+  },
+  "ORDI_SELL_20250906_150000": {
+    "alerted_at": "2025-09-06T15:12:27.612242",
+    "signal_time": "2025-09-06T15:00:00",
+    "freshness_seconds": 747.612242
   }
 }
