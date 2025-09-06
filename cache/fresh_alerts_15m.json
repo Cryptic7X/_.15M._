@@ -808,5 +808,25 @@
     "alerted_at": "2025-09-06T10:49:45.473175",
     "signal_time": "2025-09-06T10:45:00",
     "freshness_seconds": 285.473175
+  },
+  "BCH_BUY_20250906_110000": {
+    "alerted_at": "2025-09-06T11:09:21.787515",
+    "signal_time": "2025-09-06T11:00:00",
+    "freshness_seconds": 561.787515
+  },
+  "ZEC_SELL_20250906_110000": {
+    "alerted_at": "2025-09-06T11:10:05.849959",
+    "signal_time": "2025-09-06T11:00:00",
+    "freshness_seconds": 605.849959
+  },
+  "BIO_BUY_20250906_110000": {
+    "alerted_at": "2025-09-06T11:10:18.334372",
+    "signal_time": "2025-09-06T11:00:00",
+    "freshness_seconds": 618.334372
+  },
+  "VELO_SELL_20250906_110000": {
+    "alerted_at": "2025-09-06T11:10:24.413228",
+    "signal_time": "2025-09-06T11:00:00",
+    "freshness_seconds": 624.413228
   }
 }
