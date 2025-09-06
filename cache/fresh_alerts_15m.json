@@ -393,5 +393,15 @@
     "alerted_at": "2025-09-06T08:32:57.658428",
     "signal_time": "2025-09-06T08:30:00",
     "freshness_seconds": 177.658428
+  },
+  "PUMP_SELL_20250906_084500": {
+    "alerted_at": "2025-09-06T08:49:10.197720",
+    "signal_time": "2025-09-06T08:45:00",
+    "freshness_seconds": 250.19772
+  },
+  "MOODENG_BUY_20250906_084500": {
+    "alerted_at": "2025-09-06T08:49:59.011532",
+    "signal_time": "2025-09-06T08:45:00",
+    "freshness_seconds": 299.011532
   }
 }
