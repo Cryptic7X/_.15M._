@@ -158,5 +158,40 @@
     "alerted_at": "2025-09-06T04:49:43.610111",
     "signal_time": "2025-09-06T04:45:00",
     "freshness_seconds": 283.610111
+  },
+  "APT_BUY_20250906_050000": {
+    "alerted_at": "2025-09-06T05:12:01.641304",
+    "signal_time": "2025-09-06T05:00:00",
+    "freshness_seconds": 721.641304
+  },
+  "TIA_BUY_20250906_050000": {
+    "alerted_at": "2025-09-06T05:12:17.709721",
+    "signal_time": "2025-09-06T05:00:00",
+    "freshness_seconds": 737.709721
+  },
+  "GALA_BUY_20250906_050000": {
+    "alerted_at": "2025-09-06T05:12:29.794034",
+    "signal_time": "2025-09-06T05:00:00",
+    "freshness_seconds": 749.794034
+  },
+  "WAL_BUY_20250906_050000": {
+    "alerted_at": "2025-09-06T05:12:34.307263",
+    "signal_time": "2025-09-06T05:00:00",
+    "freshness_seconds": 754.307263
+  },
+  "COMP_BUY_20250906_050000": {
+    "alerted_at": "2025-09-06T05:12:41.354817",
+    "signal_time": "2025-09-06T05:00:00",
+    "freshness_seconds": 761.354817
+  },
+  "SUSHI_BUY_20250906_050000": {
+    "alerted_at": "2025-09-06T05:13:01.970639",
+    "signal_time": "2025-09-06T05:00:00",
+    "freshness_seconds": 781.970639
+  },
+  "BOME_BUY_20250906_050000": {
+    "alerted_at": "2025-09-06T05:13:03.858424",
+    "signal_time": "2025-09-06T05:00:00",
+    "freshness_seconds": 783.858424
   }
 }
