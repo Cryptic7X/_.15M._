@@ -29,7 +29,7 @@ def get_ist_time():
 class Fresh15mAnalyzer:
     def __init__(self):
         self.config = self.load_config()
-        self.deduplicator = FreshSignalDeduplicator(freshness_minutes=10)
+        self.deduplicator = FreshSignalDeduplicator(freshness_minutes=15)
         self.exchanges = self.init_exchanges()
         self.blocked_coins = self.load_blocked_coins()  # ← NEW: Load blocked coins
         self.market_data = self.load_market_data()
