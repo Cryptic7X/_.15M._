@@ -1,19 +1,4 @@
 {
-  "BNB_SELL_20250906_021500": {
-    "alerted_at": "2025-09-06T02:15:46.514754",
-    "signal_time": "2025-09-06T02:15:00",
-    "freshness_seconds": 46.514754
-  },
-  "OKB_SELL_20250906_021500": {
-    "alerted_at": "2025-09-06T02:16:18.722331",
-    "signal_time": "2025-09-06T02:15:00",
-    "freshness_seconds": 78.722331
-  },
-  "XDC_SELL_20250906_021500": {
-    "alerted_at": "2025-09-06T02:16:37.856771",
-    "signal_time": "2025-09-06T02:15:00",
-    "freshness_seconds": 97.856771
-  },
   "NMR_SELL_20250906_041500": {
     "alerted_at": "2025-09-06T04:16:00.455017",
     "signal_time": "2025-09-06T04:15:00",
@@ -1308,5 +1293,50 @@
     "alerted_at": "2025-09-07T02:04:32.910336",
     "signal_time": "2025-09-07T02:00:00",
     "freshness_seconds": 272.910336
+  },
+  "UNI_SELL_20250907_030000": {
+    "alerted_at": "2025-09-07T03:23:48.841018",
+    "signal_time": "2025-09-07T03:00:00",
+    "freshness_seconds": 1428.841018
+  },
+  "PEPE_SELL_20250907_030000": {
+    "alerted_at": "2025-09-07T03:23:51.973214",
+    "signal_time": "2025-09-07T03:00:00",
+    "freshness_seconds": 1431.973214
+  },
+  "TAO_SELL_20250907_030000": {
+    "alerted_at": "2025-09-07T03:23:53.606205",
+    "signal_time": "2025-09-07T03:00:00",
+    "freshness_seconds": 1433.606205
+  },
+  "WLD_SELL_20250907_030000": {
+    "alerted_at": "2025-09-07T03:24:02.370785",
+    "signal_time": "2025-09-07T03:00:00",
+    "freshness_seconds": 1442.370785
+  },
+  "BONK_SELL_20250907_030000": {
+    "alerted_at": "2025-09-07T03:24:07.499686",
+    "signal_time": "2025-09-07T03:00:00",
+    "freshness_seconds": 1447.499686
+  },
+  "GALA_SELL_20250907_030000": {
+    "alerted_at": "2025-09-07T03:24:18.531417",
+    "signal_time": "2025-09-07T03:00:00",
+    "freshness_seconds": 1458.531417
+  },
+  "PNUT_SELL_20250907_030000": {
+    "alerted_at": "2025-09-07T03:24:32.866211",
+    "signal_time": "2025-09-07T03:00:00",
+    "freshness_seconds": 1472.866211
+  },
+  "ZRO_SELL_20250907_030000": {
+    "alerted_at": "2025-09-07T03:24:33.951657",
+    "signal_time": "2025-09-07T03:00:00",
+    "freshness_seconds": 1473.951657
+  },
+  "BOME_SELL_20250907_030000": {
+    "alerted_at": "2025-09-07T03:24:41.894373",
+    "signal_time": "2025-09-07T03:00:00",
+    "freshness_seconds": 1481.894373
   }
 }
